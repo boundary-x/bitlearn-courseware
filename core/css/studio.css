@@ -1,0 +1,855 @@
+/* 실습 화면 3차: 전체 폭 툴바 + 보조 패널(미션 | 시뮬레이터 | 바이브코딩) + 바이브코딩 스튜디오 + 화면 속 포니봇
+ * 기준: planning/uiux-expert.md B (보조 패널 자리 공유, MakeCode iframe 폭·위치 고정) */
+
+/* ---------- 실습 레이아웃 ---------- */
+.lab { display: flex; flex-direction: column; height: calc(100vh - var(--top-h)); height: calc(100dvh - var(--top-h)); grid-template-columns: none; }
+.lab-main { flex: 1; min-height: 0; display: grid; grid-template-columns: clamp(340px, 28vw, 400px) minmax(0, 1fr); }
+.lab.collapsed .lab-main { grid-template-columns: minmax(0, 1fr); }
+.lab.collapsed .lab-panel { display: none; }
+.lab-panel { overflow-y: auto; min-height: 0; }
+.lab-view[hidden] { display: none !important; }
+.lab-view[data-pane="studio"], .lab-view[data-pane="sim"] { height: 100%; }
+.lab-panel:has(.lab-view[data-pane="studio"]:not([hidden])) { padding: 0; overflow: hidden; display: flex; flex-direction: column; background: var(--glass-solid); }
+.lab-panel:has(.lab-view[data-pane="sim"]:not([hidden])) { padding: 14px; }
+.lab-editor { min-height: 0; }
+.lab-tabs, .lab-strip, .editor-bar { display: none !important; }
+
+/* 툴바 한 줄 (44px) */
+.lab-toolbar { flex: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 12px; background: var(--glass-bar); border-bottom: 1px solid var(--glass-line); }
+.lab-seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: rgba(255, 255, 255, .6); box-shadow: inset 0 0 0 1px var(--glass-line); }
+.lab-seg button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--ink); font-weight: 700; font-size: .9rem; padding: 7px 14px; border-radius: 999px; min-height: 36px; position: relative; }
+.lab-seg button[aria-selected="true"] { background: var(--grad); color: #fff; box-shadow: var(--glow); }
+.lab-seg button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.lab-seg button.busy img { animation: spin360 1s linear infinite; }
+@keyframes spin360 { to { transform: rotate(360deg); } }
+.lab-seg .seg-short, .lab-seg .only-narrow { display: none; }
+.seg-dot { position: absolute; top: 4px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--pink); }
+.ws-chip { font-size: .78rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.ws-chip.ws-mission { background: var(--blue-soft); color: var(--blue-ink); }
+.ws-chip.ws-create { background: var(--violet-soft); color: var(--violet-ink); }
+.tb-mission { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lab.collapsed .tb-mission, .lab:not([data-view="mission"]) .tb-mission { display: inline-flex; }
+
+.tb-status { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.tb-status .dot { width: 9px; height: 9px; border-radius: 50%; background: #9AA3B8; }
+.tb-status .dot.live { background: var(--green); box-shadow: 0 0 0 3px rgba(16, 185, 129, .22); }
+
+/* 도움 요청 띠: 덮지 않고 밀어냄 */
+.lab .help-banner { position: static; flex: none; }
+
+/* 창작 공간 안내, 창작 카드 */
+.ws-note { background: var(--violet-soft); color: var(--violet-ink); border-radius: var(--r-md); padding: 10px 12px; margin-bottom: 12px; font-size: .9rem; }
+.ws-note .btn { margin-top: 6px; }
+.create-card { margin-top: 16px; padding: 16px; border-radius: var(--r-lg); background: linear-gradient(135deg, rgba(47, 91, 234, .10), rgba(200, 35, 122, .10)); border: 1.5px solid rgba(78, 90, 228, .35); }
+.create-card h3 { font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+.create-card .star { font-size: .8rem; background: var(--grad); color: #fff; padding: 2px 8px; border-radius: 999px; }
+.create-card p { font-size: .92rem; }
+.fb-more { margin: 6px 0 0; padding-left: 1.1em; font-size: .88rem; }
+
+/* 편집기 덮개 (블록 넣는 중) */
+.frame-wrap { position: relative; flex-direction: column; }
+.editor-overlay { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(238, 242, 255, .72); border-radius: inherit; }
+.editor-overlay span { background: var(--glass-solid); padding: 12px 18px; border-radius: 999px; font-weight: 800; box-shadow: var(--shadow-2); }
+
+
+/* ---------- 화면 속 포니봇 ---------- */
+.simv { display: grid; gap: 10px; }
+.simv-head h3 { margin: 0; font-size: 1.1rem; }
+.simv-head p { margin: 2px 0 0; }
+.simv-stage { position: relative; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--line); background: #F8FAFF; }
+.simv-arena { width: 100%; height: auto; display: block; aspect-ratio: 4 / 3; }
+.simv-time { position: absolute; right: 8px; top: 6px; font-size: .78rem; font-weight: 800; background: rgba(255, 255, 255, .85); padding: 2px 8px; border-radius: 999px; }
+.simv-oled { display: flex; align-items: center; gap: 10px; }
+.simv-oled canvas { width: 160px; height: auto; border-radius: 6px; border: 6px solid #1B2130; image-rendering: pixelated; }
+.simv-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.simv-speed { font-size: .82rem; font-weight: 700; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+.simv-speed select { font: inherit; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); }
+.simv-notes { margin: 0; padding-left: 1.1em; font-size: .86rem; display: grid; gap: 4px; }
+
+/* 알림 + 되돌리기 */
+.toast { display: flex; align-items: center; gap: 10px; }
+.toast .btn { flex: none; }
+
+/* ---------- 좁은 화면(<900): [미션 | 코딩 | 시뮬레이터 | AI] 탭 ---------- */
+@media (max-width: 899px) {
+  .lab-seg .only-narrow { display: inline-flex; }
+  .lab-seg .seg-long { display: none; }
+  .lab-seg .seg-short { display: inline; }
+  .lab-seg button { padding: 7px 10px; }
+  .lab-toolbar { flex-wrap: wrap; gap: 6px; }
+  .tb-status span:last-child, .tb-pop, .lab-toolbar [data-act-global="help"] { display: none; }
+  .ws-chip { order: 3; }
+  .lab-main { grid-template-columns: minmax(0, 1fr) !important; }
+  .lab .lab-panel, .lab .lab-editor { display: none !important; }
+  .lab:not([data-view="code"]) .lab-panel { display: block !important; }
+  .lab:not([data-view="code"]) .lab-panel:has(.lab-view[data-pane="studio"]:not([hidden])) { display: flex !important; }
+  .lab[data-view="code"] .lab-editor { display: flex !important; }
+  .lab[data-view="code"] .tb-mission { display: inline-flex; order: 4; width: 100%; }
+}
+@media (max-width: 520px) { .ws-chip { display: none; } }
+
+/* 투사 모드: 보조 패널 폭은 vw로(글씨 배율 때문에 패널이 화면을 다 먹지 않게) */
+body.present .lab-main { grid-template-columns: 34vw minmax(0, 1fr); }
+@media (prefers-reduced-motion: reduce) { .lab-seg button.busy img, .smsg.busy .dots { animation: none; } }
+
+/* ---------- 그룹 리뷰 반영: 도전 카드, 짝 역할, 예측, 막혔어요, AI 배지 ---------- */
+.lab-seg .ai-ic { flex: none; }
+.lab-seg button.busy .ai-ic { animation: spin360 1s linear infinite; }
+.challenges { margin-top: 16px; display: grid; gap: 10px; }
+.ch-title { margin: 0; font-size: 1.05rem; display: grid; gap: 2px; }
+.ch-title .fine { font-weight: 500; }
+.challenge { padding: 14px; border-radius: var(--r-lg); background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--shadow-1); }
+.challenge h4 { margin: 4px 0 4px; font-size: 1rem; }
+.challenge p { font-size: .9rem; margin: 0 0 8px; }
+.challenge.done { border-color: var(--green); background: var(--green-soft); }
+.ch-level { display: inline-block; font-size: .75rem; font-weight: 800; padding: 2px 10px; border-radius: 999px; background: #FFF4D6; color: #8A5300; }
+.challenge.bonus .ch-level { background: var(--violet-soft); color: var(--violet-ink); }
+.challenge details { margin: 0 0 8px; }
+.challenge img { margin-top: 6px; border-radius: 8px; background: #fff; }
+.pair-role { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 8px 0 0; padding: 8px 10px; border-radius: var(--r-md); background: var(--blue-soft); color: var(--blue-ink); font-size: .88rem; }
+.pair-role > span:first-child { font-weight: 800; }
+.predict { display: grid; gap: 4px; margin: 4px 0 8px; font-size: .86rem; font-weight: 700; color: var(--ink); }
+.predict input { font: inherit; font-weight: 500; font-size: .88rem; padding: 8px 10px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; }
+.stuck-pick { display: grid; gap: 8px; margin: 10px 0; }
+.stuck-syms { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.stuck-answer .callout { margin: 0 0 8px; }
+
+/* 그룹 검증 반영 */
+.create-card.pending { background: #FFF7ED; border-color: #FDBA74; }
+.stuck-next { display: flex; flex-wrap: wrap; gap: 6px; }
+.result-stats dt small { font-weight: 500; }
+
+/* ---------- 블록 찾기 ---------- */
+.finder { margin: 10px 0 4px; display: grid; gap: 8px; }
+.finder-title { margin: 0; font-weight: 800; font-size: .9rem; color: var(--violet-ink); }
+.fcard { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 10px; border-radius: var(--r-md); background: #fff; border: 1.5px solid var(--line); }
+.fcard.used { border-color: var(--green); background: var(--green-soft); }
+.fcard-img { min-height: 40px; display: flex; align-items: center; overflow-x: auto; padding: 4px; border-radius: 8px; background: #F3F5FB; }
+.fcard-img img { display: block; max-width: none; height: auto; max-height: 64px; width: auto; }
+.fcard-body b { font-size: .92rem; }
+.fcard-ok { margin-left: 6px; font-size: .78rem; font-weight: 800; color: var(--green-ink); }
+.fcard-where { margin: 4px 0 2px; font-size: .86rem; }
+.fcard-far { margin: 0 0 2px; font-size: .82rem; font-weight: 700; color: #9A3412; }
+.fcard .fine { margin: 2px 0 6px; }
+.drawer-chip { display: inline-block; padding: 1px 9px; border-radius: 6px; background: #58ACFA; color: #fff; font-weight: 800; font-size: .82rem; text-shadow: 0 1px 1px rgba(0, 0, 0, .25); }
+.finder-btn { box-shadow: inset 0 0 0 1.5px rgba(4, 114, 202, .45); }
+
+/* ---------- 그림 크게 보기 ---------- */
+img[data-zoom], .theory .figure img, .theory .body img { cursor: zoom-in; }
+img[data-zoom]:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
+.modal-wrap.zoom .modal { width: min(1100px, 100%); padding: 16px; }
+.zoom-fig { margin: 0; display: grid; gap: 8px; }
+.zoom-fig img { display: block; width: 100%; height: auto; max-height: calc(90vh - 130px); object-fit: contain; border-radius: var(--r-md); background: #fff; }
+.zoom-fig figcaption { font-size: .92rem; color: var(--ink-2, #444); text-align: center; }
+.modal-wrap.zoom .modal-actions { justify-content: center; margin-top: 10px; }
+
+/* ---------- 그룹 검증 3차 반영 ---------- */
+/* 크게 보기: 전체 화면, 원래 크기 토글 */
+.modal-wrap.zoom { padding: 8px; }
+.modal-wrap.zoom .modal { width: min(1600px, 100%); max-height: calc(100vh - 16px); display: flex; flex-direction: column; padding: 12px; }
+.zoom-fig { min-height: 0; flex: 1; display: flex; flex-direction: column; }
+.zoom-scroll { min-height: 0; flex: 1; overflow: auto; border-radius: var(--r-md); background: #fff; touch-action: pan-x pan-y pinch-zoom; }
+.zoom-fig .zoom-scroll img { width: 100%; height: auto; max-height: calc(100vh - 150px); object-fit: contain; border-radius: 0; }
+.zoom-fig.actual .zoom-scroll img { width: auto; max-width: none; max-height: none; }
+/* 누르면 커진다는 표시 */
+.figure.ig, .goal-img { position: relative; }
+.figure.ig::after, .goal-img::after { content: '크게 보기'; position: absolute; top: 10px; right: 10px; padding: 3px 9px 3px 24px; border-radius: 999px; font-size: .72rem; font-weight: 800; color: #fff; background: rgba(20, 26, 51, .72) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6'/%3E%3Cpath d='M15 15l6 6'/%3E%3C/svg%3E") no-repeat 7px center; pointer-events: none; }
+/* 본문 인포그래픽: 두 칸 아래 전체 폭 */
+.ig-row { display: grid; gap: 14px; margin: 18px 0; }
+.ig-row .figure.ig { margin: 0; max-width: 980px; }
+/* 블록 찾기 카드: 그림이 카드 폭을 넘지 않게, 서랍 칩은 흰 바탕 + 색 견본(대비) */
+.fcard-img img { max-width: 100%; max-height: 64px; width: auto; height: auto; object-fit: contain; }
+.drawer-chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 6px; background: #fff; color: var(--ink); border: 1px solid var(--line); text-shadow: none; font-weight: 800; }
+.drawer-chip i { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+.row-pos { color: var(--ink-2); font-weight: 600; }
+.fcard-after { margin: 2px 0 4px; font-size: .84rem; font-weight: 700; color: var(--violet-ink); }
+/* 투사 모드 실습: 편집기 폭 확보 */
+body.present.lab-mode .page { max-width: none; }
+
+/* P2-8: 이미 코드에 있는 블록 카드는 한 줄로 접기 */
+.fcard.used { grid-template-columns: minmax(0, 1fr); padding: 8px 10px; }
+.fcard.used .fcard-img, .fcard.used .fine, .fcard.used .fcard-far { display: none; }
+.fcard.used .fcard-where { margin: 2px 0 0; font-size: .82rem; }
+/* P2-14(목표 그림 높이 줄이기)는 UI/UX 5차에서 '그림과 목표 문장 나란히'로 바뀜 → 파일 끝 5차 블록 */
+
+/* 시뮬레이터 평가 반영 */
+.simv-real { margin: 4px 0 0; font-size: .82rem; color: #7C2D12; background: #FFF7ED; border: 1px solid #FDBA74; border-radius: 8px; padding: 4px 8px; }
+.simv-goal { margin: 8px 0; display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--r-md); background: #fff; border: 1px solid var(--line); }
+.simv-goal img { width: 96px; height: 64px; object-fit: contain; flex: none; }
+.simv-goal figcaption { font-size: .84rem; font-weight: 700; color: var(--ink-2); }
+.simv-legend { position: absolute; left: 8px; bottom: 6px; font-size: .74rem; color: var(--violet-ink); background: rgba(255,255,255,.85); padding: 2px 6px; border-radius: 6px; }
+.simv-stage { position: relative; }
+.simv-speed select { min-height: 40px; padding: 4px 8px; }
+.fb-sim { margin-top: 8px; padding: 8px 10px; border-radius: var(--r-sm); background: #FFF7ED; border: 1px solid #FDBA74; color: #7C2D12; }
+.fb-sim ul { margin: 4px 0 4px 18px; padding: 0; }
+
+/* =====================================================================
+ * UI/UX 5차 구현 A — 실습 패널·피드백 (planning/uiux-r5/impl-A.md)
+ * 03 실습 작업 공간 · 06 인터랙션 · 10 동기 · 02 툴바 · 04 반응형 · 05 접근성(실습 부분)
+ * ===================================================================== */
+
+/* ---------- 03 P0-3: 1366에서 MakeCode가 태블릿형(miniSim)으로 바뀌지 않게 — 편집기 iframe 최소 1004px ----------
+ * 1366 − 패널 340 − 편집기 여백 12 − 베젤 8 − 테두리 2 = 1004(실측 데스크톱 모드, [다운로드] 글자 235×52). 1440 이상은 400px 그대로 */
+body.lab-mode { --lab-panel-w: clamp(340px, calc(100vw - 1026px), 400px); }
+.lab-main { grid-template-columns: var(--lab-panel-w, clamp(340px, 28vw, 400px)) minmax(0, 1fr); }
+.lab .lab-editor { padding: 6px; }
+.lab .frame-wrap { padding: 4px; }
+
+/* ---------- 03 P0-1: 첫 화면에 ① 체크리스트와 [코드 확인하기]가 보이게 — 겹 걷어 내기 ---------- */
+.lab .lab-panel { padding: 10px 16px 32px; position: relative; }   /* 숨김 글자(.sr, position:absolute)가 패널 밖 문서를 늘려 화면이 통째로 밀리지 않게 */
+.lab-panel .lab-title { font-size: 1.25rem; margin: 0; }
+.lab-panel .lab-icon { width: 64px; }
+@media (max-height: 820px) { .lab-panel .lab-icon { display: none; } }
+.lab-back { display: inline-flex; align-items: center; min-height: 32px; font-size: .84rem; font-weight: 700; color: var(--blue-ink); text-decoration: none; }
+.lab-back:hover { text-decoration: underline; }
+@media (any-pointer: coarse) { .lab-back { min-height: 44px; } }
+.lab-about { margin: 2px 0 0; font-size: .9rem; }
+.lab-about > summary { cursor: pointer; list-style: none; min-height: 36px; display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--blue-ink); }
+.lab-about > summary::-webkit-details-marker { display: none; }
+.lab-about > summary::before { content: "▸"; font-size: .8em; }
+.lab-about[open] > summary::before { content: "▾"; }
+.lab-about .section-tag { margin: 2px 0 6px; }
+.lab-about .lab-goal { margin: 0 0 6px; }
+/* 실습 대표 그림(실습 3 최종 목표 사진 364px)은 작은 미리보기로 — 누르면 크게 보기 */
+.lab-about .figure { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 0 10px; margin: 6px 0; padding: 6px; }
+.lab-about .figure img { width: 96px; max-height: 72px; object-fit: contain; margin: 0; }
+.lab-about .figure figcaption { margin: 0; text-align: left; font-size: .84rem; }
+.lab-about > .fine { margin: 4px 0 2px; }
+.lab-panel .missions { margin: 10px 0; gap: 8px; }
+.lab .mission.done:not(.open) > header { min-height: 44px; padding: 6px 12px; }
+.lab .mission .mbody { padding: 0 12px 12px; }
+/* 목표 그림을 목표 문장 옆으로 */
+.lab .goal-img { display: grid; grid-template-columns: 120px minmax(0, 1fr); align-items: center; gap: 0 10px; padding: 6px; margin: 0 0 8px; }
+.lab .goal-img img { width: 120px; max-height: 90px !important; object-fit: contain; margin: 0; }
+.lab .goal-img figcaption { text-align: left; margin: 0; font-size: .86rem; }
+/* 실습 패널의 목표 그림: [크게 보기](09 P1-5)는 그림 왼쪽 아래 둥근 아이콘 버튼으로(이름 '크게 보기'는 그대로 읽힘). 캡션 한 줄을 아낀다 */
+.lab .goal-img img { align-self: start; }
+.lab .goal-img .zoom-btn { position: absolute; left: 10px; top: 60px; margin: 0; width: 32px; height: 32px; min-height: 0; padding: 0; justify-content: center; font-size: 0; gap: 0; box-shadow: inset 0 0 0 1.5px var(--line-strong), 0 2px 6px rgba(20, 26, 51, .18); }
+.lab .goal-img .zoom-btn svg { width: 16px; height: 16px; }
+.lab .mission > header { min-height: 48px; padding: 8px 12px; }
+/* 이야기: 상자 없이 */
+.lab .mission .story { background: none; border: 0; padding: 0; margin: 0 0 4px; }
+/* 단계: 테두리 상자 → 왼쪽 띠(겹 하나 줄이고 가로 약 24px 확보) */
+.lab .step { margin-top: 10px; padding: 2px 0 2px 12px; border: 0; border-left: 3px solid var(--line); border-radius: 0; background: none; box-shadow: none; }
+.lab .step.now { border-left-color: var(--violet); background: none; box-shadow: none; }
+.lab .step.passed { border-left-color: var(--green-strong); background: none; }
+.lab .checklist { margin: 8px 0; }
+/* 짝 역할: 단계 제목 옆 작은 칩 */
+.step h4 .role-chip { margin-left: auto; flex: none; font-style: normal; font-size: .76rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-ink); white-space: nowrap; }
+.step h4 .wait-note { display: none; font-style: normal; font-size: .76rem; font-weight: 600; color: var(--muted); }
+/* 03 P1-4: ② 단계는 대기 중이면 접고 예측 칸만 남김 */
+.step.wait h4 .wait-note { display: inline; }
+.step.wait .robot-steps, .step.wait .ig-steps, .step.wait .mission-actions { display: none; }
+.lab .ig-steps > summary { min-height: 44px; display: flex; align-items: center; }
+.lab .predict input { min-height: 44px; }
+
+/* ---------- 06 P0-2 · 10 P1-4: 결과 상자 ---------- */
+.feedback.fb-new { animation: fb-in 200ms cubic-bezier(.2, .8, .2, 1); }
+.feedback.ok.fb-new { animation: fb-in 200ms cubic-bezier(.2, .8, .2, 1), fb-glow 900ms ease-out; }
+@keyframes fb-in { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes fb-glow { from { box-shadow: 0 0 0 0 rgba(16, 185, 129, .45); } to { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } }
+.fb-meta { display: block; clear: both; margin-top: 6px; font-size: .78rem; font-weight: 600; color: var(--muted); }
+/* 실패는 빨강 대신 "거의 다 왔어요" 주황 톤(#6B4200 / #FFF8EB 약 8.3:1). 흔들기 같은 움직임 없음 */
+.lab .feedback.no { background: #FFF8EB; color: #6B4200; border-color: rgba(224, 164, 0, .45); }
+.lab .feedback.no b { color: #8A3A00; }
+.lab .feedback.no .fb-up { color: #065F46; }
+.fb-next { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; clear: both; }
+.fb-self { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 8px 0 0; clear: both; }
+.fb-self .fine { flex-basis: 100%; margin: 0; }
+.checklist li.just-ok { animation: justok 900ms ease-out; border-radius: 6px; }
+@keyframes justok { 30% { background: var(--green-soft); } }
+/* "확인 중…"(150ms 뒤에만) */
+.btn.is-busy { pointer-events: none; cursor: progress; }
+.btn.is-busy::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin360 700ms linear infinite; }
+/* 지금은 할 수 없는 것을 눌렀을 때 이유 한 줄 */
+.why { margin: 6px 0 0; font-size: .85rem; font-weight: 700; color: var(--violet-ink); }
+.why.fb-new { animation: fb-in 200ms ease-out; }
+.mission > .why { margin: 0 14px 10px; }
+.step.flash { animation: stepflash 700ms ease-out; }
+@keyframes stepflash { 40% { border-left-color: #D97706; background: rgba(245, 158, 11, .10); } }
+.lab .btn[aria-disabled="true"], .lab .btn[aria-disabled="true"]:hover { cursor: not-allowed; transform: none; color: #5A6080; background-image: none; background-color: rgba(20, 26, 51, .06); box-shadow: inset 0 0 0 1px rgba(20, 26, 51, .10); }
+.lab .btn.robot-ok, .lab .btn.robot-ok[disabled] { color: var(--green-ink); background-color: var(--green-soft); box-shadow: none; cursor: default; }
+/* 06 P1-6: 누름 반응(실습 안) */
+.lab .btn:active:not([disabled]):not([aria-disabled="true"]) { transform: translateY(1px) scale(.97); transition-duration: 0ms; }
+
+/* ---------- 06 P1-3: MakeCode 연결 전 ---------- */
+.lab.mc-wait [data-act="check"], .lab.mc-wait [data-tb="check"], .lab.mc-wait [data-act="sim"] { color: #5A6080; background-image: none; background-color: rgba(20, 26, 51, .06); box-shadow: inset 0 0 0 1px rgba(20, 26, 51, .10); cursor: progress; }
+.tb-status .dot:not(.live) { animation: mc-pulse 1200ms ease-in-out infinite; }
+.tb-status .dot.live { animation: dot-pop 240ms cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes mc-pulse { 50% { opacity: .35; } }
+@keyframes dot-pop { from { transform: scale(.4); } }
+
+/* ---------- 03 P1-7: 힌트는 최신 하나만 펼침 ---------- */
+.lab .hint .hint-body b { display: inline; font-size: inherit; color: inherit; }
+.hint-head { cursor: pointer; }
+.hint-head::after { content: " ▾"; }
+.hint.folded .hint-head::after { content: " ▸"; }
+.hint.folded { padding: 6px 12px; }
+.hint.folded .hint-body { display: none; }
+.hint-head:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.lab-panel .hint img { max-height: 220px; width: auto; }
+
+/* ---------- 03 P1-5 · 06 P1-3: 블록 찾기 카드 압축, 그림 자리 72px 미리 확보 ---------- */
+.finder { margin: 10px 0 4px; gap: 6px; }
+.finder-search { margin: 0; font-size: .84rem; color: var(--ink-2); }
+.finder kbd { font: inherit; font-weight: 800; font-size: .8rem; padding: 1px 7px; border-radius: 6px; background: #F1F3F8; border: 1px solid var(--line); color: var(--ink); }
+.fcard { padding: 8px; gap: 4px; }
+.fcard-img { min-height: 72px; padding: 2px 0; background: none; }
+.fcard-img.loading { background: linear-gradient(90deg, #EEF1F8 0%, #F8F9FD 40%, #EEF1F8 80%) 0 0 / 200% 100%; animation: skel 1200ms linear infinite; border-radius: 8px; }
+.fcard-wait { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.fcard-img img { animation: fade-in-a 160ms ease-out; }
+@keyframes skel { to { background-position: -200% 0; } }
+@keyframes fade-in-a { from { opacity: 0; } }
+.fcard-where { margin: 2px 0 0; }
+.fcard-search { margin: 2px 0 0; font-size: .8rem; color: var(--muted); }
+.fcard.used .fcard-search { display: none; }
+.fcard.found-pop { animation: foundpop 1.2s ease-out; }
+.fcard.found-pop .fcard-ok::after { content: " · 찾았어요!"; }
+@keyframes foundpop { 25%, 65% { box-shadow: 0 0 0 4px rgba(16, 185, 129, .35); } }
+
+/* ---------- 06 P0-1 · 03 P1-6 · 04: 알림(토스트) — 한 번에 하나, 실습에서는 툴바 아래 + 버튼 말고는 클릭 통과 ---------- */
+.toast-host { position: fixed; z-index: 300; left: 0; right: 0; bottom: max(16px, env(safe-area-inset-bottom)); display: grid; justify-items: center; gap: 8px; padding: 0 16px; pointer-events: none; }
+.toast-host.in-lab { bottom: auto; }
+.toast-host.at-editor { justify-items: end; }
+.toast-host .toast { position: static; left: auto; bottom: auto; transform: none; pointer-events: auto; width: max-content; max-width: min(560px, 100%); display: flex; align-items: center; gap: 6px; padding: 6px 4px 6px 14px; transition: none; animation: toast-in 200ms cubic-bezier(.2, .8, .2, 1); }
+.toast-host.in-lab .toast { pointer-events: none; max-width: min(460px, 100%); }
+.toast-host.in-lab .toast button { pointer-events: auto; }
+.toast-host .toast.ok { background: #F0FDF7; border-color: rgba(16, 185, 129, .45); color: var(--green-ink); }
+.toast-host .toast.out { transform: none; animation: toast-out 160ms cubic-bezier(.4, 0, 1, 1) forwards; }
+.toast-host .toast.bump { animation: toast-bump 240ms cubic-bezier(.2, .8, .2, 1); }
+.toast-msg { min-width: 0; }
+.toast-x { flex: none; width: 36px; height: 36px; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 1.25rem; line-height: 1; cursor: pointer; }
+.toast-x:hover { background: rgba(20, 26, 51, .06); }
+@media (any-pointer: coarse) { .toast-x { width: 44px; height: 44px; } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes toast-bump { 40% { transform: scale(1.03); } }
+@media (prefers-reduced-motion: reduce) { .toast-host .toast.out { opacity: 0; } }
+
+/* ---------- 10 P0-1 · 06 P1-4: 미션 성공 카드(누른 버튼 바로 아래, 자동으로 접지 않음) ---------- */
+.robot-done { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; align-items: start; margin-top: 10px; padding: 12px; border-radius: var(--r-md); background: linear-gradient(135deg, rgba(16, 185, 129, .12), rgba(78, 90, 228, .08)), var(--glass-solid); border: 1.5px solid rgba(16, 185, 129, .5); box-shadow: var(--shadow-1); animation: win-in 350ms cubic-bezier(.2, .8, .2, 1); }
+.robot-done.lab-win { border-color: transparent; background: linear-gradient(var(--glass-solid), var(--glass-solid)) padding-box, var(--grad) border-box; }
+.robot-done .win-art { width: 56px; height: auto; animation: art-pop 320ms cubic-bezier(.34, 1.56, .64, 1); }
+.win-body > * { margin: 0 0 6px; }
+.win-body > :last-child { margin-bottom: 0; }
+.win-kicker { font-size: .82rem; font-weight: 800; color: var(--green-ink); }
+.robot-done.lab-win .win-kicker { color: var(--violet-ink); }
+.win-title { margin-top: 2px; font-size: 1.02rem; font-weight: 800; letter-spacing: -0.015em; }
+.win-why, .win-via, .win-led, .win-pair, .win-pick { font-size: .88rem; }
+.win-why b { display: inline-block; margin-right: 4px; padding: 0 6px; border-radius: 6px; background: var(--green-soft); color: var(--green-ink); font-size: .76rem; }
+.win-pair { padding: 6px 8px; border-radius: 8px; background: var(--blue-soft); color: var(--blue-ink); }
+.win-pick { font-weight: 800; }
+.win-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.led-gain { display: inline-grid; place-items: center; width: 18px; height: 18px; margin: 0 6px 0 0; vertical-align: -3px; border-radius: 5px; background: var(--device); }
+.led-gain i { width: 10px; height: 10px; border-radius: 3px; background: var(--led); box-shadow: 0 0 6px var(--led); animation: led-on 600ms ease-out; }
+.mission.just-done > header .num { animation: num-pop 320ms cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes win-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+@keyframes art-pop { from { opacity: 0; transform: scale(.85) rotate(-6deg); } }
+@keyframes num-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.12); } }
+@keyframes led-on { 0% { background: var(--led-off); box-shadow: none; } 35% { background: #fff; box-shadow: 0 0 10px 3px var(--led); } }
+
+/* ---------- 10 P1-5: 상단 LED 새 칸 반짝 + "+n" ---------- */
+#topLed { position: relative; }
+.led-matrix i.new { animation: ledpop .6s ease-out 2; }
+@keyframes ledpop { 0% { transform: scale(.5); background: #fff; } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.led-plus { position: absolute; right: calc(100% + 6px); top: 50%; transform: translateY(-50%); font: 800 .8rem/1 Pretendard, sans-serif; color: #fff; background: var(--red); padding: 3px 6px; border-radius: 999px; pointer-events: none; animation: plus-up 1.4s ease-out forwards; }
+@keyframes plus-up { 0% { opacity: 0; transform: translateY(-50%); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-50% - 18px)); } }
+@media (prefers-reduced-motion: reduce) { .led-matrix i.new { outline: 2px solid #fff; outline-offset: 1px; } }
+
+/* ---------- 03 P1-4: 도전 카드는 미션을 다 할 때까지 접기 ---------- */
+details.challenges { display: block; margin-top: 16px; }
+.challenges > summary.ch-title { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px; font-size: 1rem; font-weight: 800; }
+.challenges > summary::-webkit-details-marker { display: none; }
+.challenges > summary::before { content: "▸"; font-size: .8em; }
+.challenges[open] > summary::before { content: "▾"; }
+.ch-when { font-size: .82rem; font-weight: 600; color: var(--muted); }
+.ch-body { display: grid; gap: 10px; }
+.ch-body > .fine { margin: 0; }
+
+/* ---------- 05 P1-6: 잠긴 미션 — 흐리게 지우지 않고 회색 면 + 진한 글자(4.5:1 이상) ---------- */
+.lab .mission.locked { opacity: 1; filter: none; background: #F1F3F7; border-style: dashed; border-color: #B9BED0; box-shadow: none; }
+.lab .mission.locked > header .num { background: #E3E6EE; color: var(--ink-2); }
+.lab .mission.locked > header .name { color: var(--ink-2); }
+.lab .mission.locked > header .state { color: var(--ink-2); background: #E3E6EE; }
+
+
+/* ---------- 02 P0-2 · 04 P0-1: 툴바 '지금 미션' 칸 — 제목만 말줄임, 버튼은 잘리지 않게 ---------- */
+.tb-mission { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; white-space: nowrap; overflow: visible; }
+.tbm-label, .tbm-act { flex: none; }
+.tbm-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tb-mission .tbm-next { flex: 0 1 auto; min-width: 0; }
+.tbm-next span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 04 P1-3: 툴바 높이 정리(57 → 54px) */
+.lab-seg { padding: 2px; }
+.lab-toolbar { padding-top: 3px; padding-bottom: 3px; }
+@media (max-width: 899px) {
+  .lab:not([data-view="code"]) .tb-mission { display: none; }   /* 미션 카드와 중복, 8px 조각 제거 */
+  .tb-mission .tbm-act { margin-left: auto; }
+}
+@media (max-width: 699px) {
+  .lab[data-view="code"] .tb-mission { order: 4; flex: 1 0 100%; }   /* flex-basis 100%로 진짜 2번째 줄 */
+}
+
+/* ---------- 04 P1-2: 세로 태블릿 [코딩] 탭 — 편집기 64% + 아래 '미션 서랍' 36%(① 단계만) ---------- */
+@media (min-width: 700px) and (max-width: 899px) and (min-height: 900px) {
+  .lab[data-view="code"] .lab-main:has(.lab-view[data-pane="mission"]:not([hidden]) .mission.open) { grid-template-rows: minmax(0, 1fr) minmax(200px, 36%); }
+  .lab[data-view="code"] .lab-main:has(.lab-view[data-pane="mission"]:not([hidden]) .mission.open) .lab-editor { grid-row: 1; }
+  .lab[data-view="code"] .lab-panel:has(> .lab-view[data-pane="mission"]:not([hidden]) .mission.open) {
+    display: block !important; grid-row: 2; overflow-y: auto; padding: 8px 16px 16px;
+    background: var(--glass-solid); border-top: 1px solid var(--line); box-shadow: 0 -10px 24px -16px rgba(49, 46, 129, .45);
+  }
+  .lab[data-view="code"] .lab-view[data-pane="mission"] > :not(.missions),
+  .lab[data-view="code"] .mission:not(.open),
+  .lab[data-view="code"] .mission.open > header,
+  .lab[data-view="code"] .mission.open .mbody > :not(.step),
+  .lab[data-view="code"] .mission.open .step ~ .step { display: none; }
+  .lab[data-view="code"] .mission.open { border: 0; box-shadow: none; background: none; }
+  .lab[data-view="code"] .mission.open .mbody { display: block; padding: 0; }
+  .lab[data-view="code"] .lab-panel .missions { margin: 0; }
+}
+
+/* ---------- 05 P1-9: 400% 확대(높이 480 이하, 좁은 화면) — 고정 높이를 풀고 페이지 전체가 스크롤 ---------- */
+@media (max-height: 480px) and (max-width: 899px) {
+  body.lab-mode .topbar { position: absolute; }
+  .lab { height: auto; min-height: calc(100dvh - var(--top-h)); }
+  .lab:not([data-view="code"]) .lab-panel { overflow: visible; }
+  .lab[data-view="code"] .lab-editor { height: calc(100dvh - 8px); }
+}
+
+
+/* ---------- 04 P2-6: 시뮬레이터 조작 줄이 무대 아래로 밀려 잘리지 않게(1024×768, 폰) ---------- */
+.lab-view[data-pane="sim"] .simv-ctl { position: sticky; bottom: 0; z-index: 2; margin: 0 -14px; padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, rgba(248, 249, 255, 0), var(--glass-solid) 10px); }
+@media (max-height: 800px) { .simv-goal img { width: 72px; height: 48px; } }
+
+/* ---------- 04 P2-7: 휴대폰 도움 요청 띠 123px → 약 90px ---------- */
+@media (max-width: 599px) {
+  .lab .help-banner { padding: 6px 12px; gap: 4px 8px; }
+  .lab .help-banner b { flex: 1; }
+  .lab .help-banner span { order: 3; flex: 1 0 100%; min-width: 0; font-size: .85rem; line-height: 1.35; }
+}
+
+/* ---------- 바이브코딩 스튜디오(6차, 원본 크롬 확장 화면 탑재: js/vibe-host.js, vibe/) ----------
+   iframe 칸(#vibeDock)은 body 아래에 한 번만 두고, 실습 패널의 스튜디오 칸 위치에 맞춰 띄운다(페이지를 옮겨도 접속키·대화 유지).
+   층: 실습 화면 위, 목차 가림막(19)·목차(20)·상단 바(30)·창(modal)·알림 아래 */
+.vibe-pane { position: relative; min-height: 320px; }
+.vibe-loading { margin: 24px 16px; color: var(--muted); font-size: .95rem; }
+.vibe-dock { position: fixed; z-index: 18; overflow: hidden; background: #fff; border-radius: 0 0 var(--r-lg, 16px) var(--r-lg, 16px); }
+.vibe-dock[hidden] { display: none; }
+.vibe-dock iframe { display: block; width: 100%; height: 100%; border: 0; }
+body.rail-open .vibe-dock { visibility: hidden; }
+
+/* =====================================================================
+ * UI/UX 7차 — 코딩 실습 화면 정리 (planning/uiux-r7/11-synthesis.md)
+ * 패널은 지금 미션 한 장 · 주 버튼은 패널 아래 한 자리 · 끝난 단계는 접힘 · 상태는 번호 배지 하나 · 글자 20/16/14/13
+ * ===================================================================== */
+
+/* ---------- 패널: 위는 실습 이름·진행 점, 가운데 지금 미션, 아래 주 버튼 막대(붙박이) ---------- */
+html body.lab-mode .lab .lab-panel { padding: 0 16px; }
+.lab .lab-view[data-pane="mission"] { min-height: 100%; display: flex; flex-direction: column; }
+html .lab .lab-head { padding-top: 10px; }
+html .lab-panel .lab-title { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); letter-spacing: 0; margin: 0; }
+html .lab .lab-about { margin: 0; font-size: var(--fs-sm); }
+html .lab .lab-about > summary { min-height: 32px; font-size: var(--fs-xs); }
+.lab-about .onb { margin: 6px 0; }
+.lab-about .onb img { width: 100%; height: auto; border-radius: 10px; margin: 6px 0; }
+
+/* 진행 점(7차 01 P0-2·02 P0-2): 끝낸·잠긴 미션 카드 대신 한 줄 */
+.mstep { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px; }
+.mstep ol { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; }
+.mstep li { display: flex; align-items: center; }
+.mstep li + li::before { content: ""; width: 16px; height: 2px; background: var(--line-strong); margin: 0 3px; }
+.mstep button { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; font: inherit; font-weight: 800; font-size: var(--fs-xs); cursor: pointer; background: #E3E6EE; color: var(--ink-2); }
+.mstep button.ms-done { background: var(--green-strong); color: #fff; }
+.mstep button.ms-make, .mstep button.ms-robot { background: #fff; color: var(--violet-ink); box-shadow: inset 0 0 0 2px var(--violet); }
+.mstep button[aria-current="step"] { background: var(--violet); color: #fff; box-shadow: 0 0 0 3px rgba(78, 90, 228, .25); }
+.mstep button.ms-done[aria-current="step"] { background: var(--green-strong); box-shadow: 0 0 0 3px rgba(4, 120, 87, .25); }
+.mstep button[aria-disabled="true"] { cursor: not-allowed; }
+.mstep button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.mstep-n { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); }
+@media (any-pointer: coarse) { .mstep button { width: 44px; height: 44px; } .mstep li + li::before { width: 10px; } }
+.mstep + .why { margin: 0 0 4px; }
+
+/* 지금 미션 한 장: 다른 미션은 진행 점으로만, 카드 테두리 없이(패널이 곧 카드, 10 P1-1·02 P0-4) */
+html .lab .missions { margin: 2px 0 0; gap: 0; }
+html .lab .mission:not(.open) { display: none; }
+html .lab .mission.open { border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; opacity: 1; filter: none; }
+html .lab .mission .mbody { display: block; padding: 0; }
+html .lab .mission > header.mhead { display: flex; align-items: center; gap: 10px; padding: 8px 0 6px; min-height: 0; cursor: default; }
+.mhead .name { margin: 0; flex: 1; font-size: var(--fs-xl); font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; }
+html .lab .mission > header .num { width: 30px; height: 30px; background: var(--violet); color: #fff; }
+html .lab .mission.done > header .num { background: var(--green-strong); }
+html .lab .mission.locked > header .num { background: #E3E6EE; color: var(--ink-2); }
+.mhead h2:focus { outline: none; }
+.mhead h2:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+
+/* 목표: 그림 + 목표 한 문장(우물 하나). '이번엔' 한 문장, 짝 역할 한 줄 */
+html .lab .goal-img { grid-template-columns: 112px minmax(0, 1fr); margin: 2px 0 8px; padding: 6px; background: rgba(20, 26, 51, .04); border: 0; border-radius: var(--r-inner); box-shadow: none; }
+html .lab .goal-img img { width: 112px; }
+html .lab .goal-img figcaption { font-size: var(--fs-md); font-weight: 700; color: var(--ink); line-height: 1.45; }
+.goal-tag { display: inline-block; margin-right: 4px; font-size: var(--fs-xs); font-weight: 800; color: var(--violet-ink); }
+.goal-img .credit { display: block; margin-top: 4px; font-weight: 500; }
+.goal-line { margin: 2px 0 8px; font-size: var(--fs-md); font-weight: 700; }
+html .lab .mission .story { margin: 0 0 6px; padding: 0; background: none; font-size: var(--fs-sm); }
+.lab .roles { margin: 0 0 2px; font-size: var(--fs-sm); color: var(--ink-2); }
+.lab .roles b { color: var(--ink); }
+
+/* 단계: 회색 선으로 나누고, 끝난 단계는 한 줄로 접힘(7차 03 P0-2) */
+html .lab .step { margin-top: 10px; padding: 10px 0 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; box-shadow: none; opacity: 1; }
+html .lab .step-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin: 0 0 4px; font-size: var(--fs-md); font-weight: 800; letter-spacing: -0.015em; }
+.step-head .sn { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-xs); background: rgba(20, 26, 51, .08); color: var(--ink-2); }
+.step.now .step-head .sn { background: var(--violet); color: #fff; }
+.step.passed .step-head .sn { background: var(--green-strong); color: #fff; }
+.step-head:focus { outline: none; }
+.step-head em { font-style: normal; font-size: var(--fs-xs); font-weight: 700; }
+.step-head .step-pass, .step-head .wait-note, .step-head .step-more { display: none; }
+.step.passed .step-head .step-pass { display: inline; color: var(--green-ink); }
+html .lab .step.wait .step-head .wait-note { display: inline; color: var(--muted); font-weight: 600; }
+.step.passed .step-head .step-more { display: inline-flex; align-items: center; margin-left: auto; min-height: 36px; padding: 4px 6px; border: 0; background: none; color: var(--blue-ink); font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; border-radius: 8px; }
+.step.passed .step-head .step-more::after { content: " \25B8"; }
+.step.passed.unfold .step-head .step-more::after { content: " \25BE"; }
+.step.wait > .step-body, .step.passed:not(.unfold) > .step-body { display: none; }
+html .lab .checklist { margin: 6px 0; }
+html .lab .checklist li { font-size: var(--fs-md); }
+html .lab .step .mission-actions { margin-top: 8px; gap: 6px; }
+.step-aux { margin: 8px 0 0; }
+.robot-intro { display: none; }
+.robot-intro.show { display: block; margin: 0 0 8px; padding: 8px 12px; border-radius: var(--r-inner); background: var(--green-soft); color: var(--green-ink); font-size: var(--fs-sm); }
+.robot-intro .fb-sim { color: #7C2D12; }
+html .lab .robot-steps { font-size: var(--fs-sm); }
+.dl-mini { display: none; }
+.lab.mc-compact .dl-full { display: none; }
+.lab.mc-compact .dl-mini { display: inline; }
+/* MakeCode가 태블릿 모습이면 없는 '검색하기' 칸 안내를 숨긴다(06 P0-2) */
+.lab.mc-compact .finder-search, .lab.mc-compact .fcard-search { display: none; }
+.finder-title { color: var(--ink-2); }
+
+/* 결과 상자: 한 걸음만(05 P0-1) */
+html .lab .feedback .fb-next { margin-top: 8px; }
+html .lab .feedback .fb-next .btn.ghost { padding-left: 8px; padding-right: 8px; }
+
+/* 성공 띠(7차 03 P0-4): 다음 미션 맨 위, 다음 코드 확인까지 */
+.win-strip { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: start; margin: 0 0 10px; padding: 10px 12px; border-radius: var(--r-inner); background: var(--green-soft); border: 1px solid rgba(16, 185, 129, .35); animation: win-in 350ms cubic-bezier(.2, .8, .2, 1); }
+.win-strip .win-art { width: 44px; height: auto; }
+.win-strip .win-body > * { margin: 0 0 4px; }
+.win-strip .win-body > :last-child { margin-bottom: 0; }
+.win-strip .win-kicker, .robot-done .win-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: var(--fs-md); font-weight: 800; color: var(--green-ink); }
+.win-led { display: inline-flex; align-items: center; font-size: var(--fs-xs); font-weight: 800; color: var(--ink-2); }
+.win-strip .win-why, .win-strip .win-via { font-size: var(--fs-sm); color: var(--ink); }
+.win-strip .win-pair { padding: 0; background: none; font-size: var(--fs-sm); color: var(--blue-ink); }
+@media (prefers-reduced-motion: reduce) { .win-strip { animation: none; } }
+
+/* 실습 완료 화면 */
+.lab-done { margin: 6px 0 0; }
+.lab-done-head { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px; }
+.lab-done-head .num { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--green-strong); color: #fff; }
+.lab-done-head h2 { margin: 0; font-size: var(--fs-xl); }
+.lab-done-head h2:focus { outline: none; }
+.lab-done-head p { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--ink-2); }
+.lab-done .robot-done { margin: 0 0 10px; }
+.lab-done .create-card { margin-top: 10px; padding: 12px 14px; }
+.lab-done .create-card h3 { margin: 0 0 4px; font-size: var(--fs-md); }
+.lab-done .create-card p { margin: 0 0 6px; font-size: var(--fs-sm); }
+.create-guide h2 { margin: 6px 0 6px; font-size: var(--fs-xl); }
+.create-guide p { margin: 0 0 6px; font-size: var(--fs-sm); }
+
+/* 이전·다음 쪽: 작은 글자 링크 한 줄(01 P0-2) */
+.lab-nav { display: flex; justify-content: space-between; gap: 8px; margin: 16px 0 10px; font-size: var(--fs-xs); }
+.lab-nav a { display: inline-flex; align-items: center; min-height: 32px; color: var(--blue-ink); font-weight: 700; text-decoration: none; }
+.lab-nav a:hover { text-decoration: underline; }
+@media (any-pointer: coarse) { .lab-nav a { min-height: 44px; } }
+
+/* 주 버튼 막대(7차 02 P0-1·03 P0-3): 패널 아래 붙박이, MakeCode [다운로드]와 같은 줄. 화면에서 채운 버튼은 이것 하나 */
+.lab-act { position: sticky; bottom: 0; z-index: 3; margin: auto -16px 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--glass-solid); border-top: 1px solid var(--line); box-shadow: 0 -10px 20px -18px rgba(49, 46, 129, .55); }
+.lab-act:empty { display: none; }
+.lab-act .act-row { display: flex; align-items: center; gap: 8px; }
+.lab-act .act-row > .btn:first-child { flex: 1; min-height: 52px; justify-content: center; font-size: var(--fs-md); font-weight: 800; }
+.lab-act .act-row > .btn + .btn { flex: none; }
+.act-hint { margin: 0 0 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--violet-ink); text-align: right; }
+.lab-act .why { margin: 6px 0 0; }
+
+/* ---------- 툴바: [‹ 패널] · (좁은 화면·자유 만들기만 탭) · 위치 칸 · (필요할 때만 거울 버튼) · [? 막혔어요] ---------- */
+.panel-handle { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 10px; background: rgba(20, 26, 51, .06); color: var(--ink-2); font: inherit; font-size: 1.15rem; font-weight: 800; cursor: pointer; }
+.panel-handle:hover { background: rgba(20, 26, 51, .1); }
+.panel-handle:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.lab-seg.only-narrow { display: none; }
+.tb-loc { flex: 1; min-width: 0; margin: 0; font-size: var(--fs-sm); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-loc b { color: var(--ink); }
+.tb-act { display: none; flex: none; align-items: center; gap: 6px; }
+.tb-act.fixed, .lab.collapsed .tb-act.mirror, .lab[data-view="sim"] .tb-act.mirror { display: inline-flex; }
+.lab.mc-live .tb-status { display: none; }
+.tb-stuck { flex: none; gap: 6px; }
+.tb-stuck svg { flex: none; }
+/* 선택 탭: 회색 트랙 안 흰 엄지(링 없음) — 보조 버튼과 다른 모양(7차 10 P0-1·결정 11) */
+html .lab-seg { padding: 3px; background: rgba(20, 26, 51, .07); box-shadow: none; }
+html .lab-seg button[aria-selected="true"] { color: var(--violet-ink); background: #fff; box-shadow: 0 1px 3px rgba(20, 26, 51, .2); }
+/* 화면 속 포니봇 보조 화면: 위에 [‹ 미션으로 돌아가기] */
+.sim-back { margin: 0 0 6px; }
+html .lab-panel:has(.lab-view[data-pane="sim"]:not([hidden])) { padding: 10px 14px; }
+
+@media (max-width: 899px) {
+  .panel-handle { display: none; }
+  .lab-seg.only-narrow { display: inline-flex; }
+  .lab[data-view="code"] .tb-act.mirror { display: inline-flex; }
+}
+@media (max-width: 699px) {
+  .tb-loc { order: 5; flex: 1 0 100%; }
+}
+/* 세로 태블릿 [코딩] 탭 미션 서랍: 36% → 27%(AI ponybot 서랍이 가려지지 않게, 06 P0-1), 지금 단계만, 주 버튼 막대 포함.
+   서랍에 주 버튼이 있으니 툴바 거울 버튼은 뺀다(06 P0-3) */
+@media (min-width: 700px) and (max-width: 899px) and (min-height: 900px) {
+  .lab[data-view="code"] .lab-main:has(.lab-view[data-pane="mission"]:not([hidden]) .mission.open) { grid-template-rows: minmax(0, 1fr) minmax(160px, 27%); }
+  html .lab[data-view="code"] .lab-view[data-pane="mission"] > .lab-act { display: block; }
+  .lab[data-view="code"] .lab-view[data-pane="mission"] { min-height: 0; }
+  .lab[data-view="code"] .mission.open .step:not(.now) { display: none; }
+  .lab[data-view="code"] .mission.open .step.now { border-top: 0; margin-top: 0; }
+  .lab[data-view="code"]:has(.lab-view[data-pane="mission"]:not([hidden]) .mission.open) .tb-act.mirror { display: none; }
+}
+
+/* 7차 다듬기: 막대 버튼이 길면 둘째 줄로, 완료 축하 카드는 작게, 막혔어요 사다리 줄 */
+.lab-act .act-row { flex-wrap: wrap; }
+.lab-act .act-row > .btn:first-child { flex: 1 1 160px; }
+.lab-act .act-row > .btn + .btn { flex: 1 0 auto; }
+.lab-act .act-row > .btn.ghost + .btn, .lab-act .act-row > .btn + .btn.ghost { flex: 0 0 auto; }
+html .lab-done .robot-done.lab-win { grid-template-columns: 56px minmax(0, 1fr); }
+.lab-done .robot-done .win-art { width: 56px; height: auto; }
+.ladder { margin: 10px 0; padding: 0; list-style: none; counter-reset: lad; display: grid; gap: 6px; }
+.ladder li { counter-increment: lad; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r-inner); background: rgba(20, 26, 51, .04); font-size: var(--fs-sm); }
+.ladder li::before { content: counter(lad); flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; background: #fff; color: var(--violet-ink); box-shadow: inset 0 0 0 1.5px var(--violet); }
+.ladder li > span { flex: 1; min-width: 0; }
+.ladder li > .btn { flex: none; }
+.ladder .lad-next { background: var(--violet-soft); }
+.ladder .lad-next small { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--ink-2); }
+
+/* 7차 다듬기: 카드가 패널 폭을 넘지 않게(교사 정답 코드의 긴 줄이 카드를 넓혀 목표 문장이 잘리던 것) */
+html .lab .missions { grid-template-columns: minmax(0, 1fr); }
+html .lab .mission, html .lab .mission .mbody { min-width: 0; max-width: 100%; }
+html .lab .teacher-only.answer pre { max-width: 100%; overflow-x: auto; overflow-wrap: anywhere; } /* 9~10 페르소나 2회차 #15: 긴 낱말(convertToText(aiPonybot.readLineSensor(…)))도 상자 안에서 줄 바꿈 */
+html .lab .teacher-only.answer img { max-width: 100%; height: auto; }
+
+/* =====================================================================
+ * 8차(사용자 지시): 화면 속 포니봇(시뮬레이터) 삭제, [코드 확인]은 1단계 버튼 줄(옛 [화면에서 실행] 자리),
+ * [목표대로 됐어요]는 2단계 버튼 줄. 패널 아래 주 버튼 막대(#labAct)는 없앴다.
+ * ===================================================================== */
+html .lab .step .mission-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+html .lab .step .mission-actions .btn.primary { min-width: 96px; justify-content: center; }
+html .lab .step-acts { margin-top: 10px; }
+html .lab .step-acts .btn.primary { flex: 1 1 160px; min-height: 48px; font-size: var(--fs-md); }
+html .lab .step-acts .btn.robot-ok { flex: 1 1 160px; }
+/* 지난 미션을 보는 중 한 줄 */
+.lab-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin: 8px 0 2px; padding: 8px 10px; border-radius: var(--r-inner); background: rgba(20, 26, 51, .05); font-size: var(--fs-sm); color: var(--ink-2); }
+.lab-note[hidden] { display: none; }
+/* 실습 완료 화면: 자유 만들기 카드 안 버튼, 다음 실습 링크 */
+.lab-done .create-card .btn.primary { margin-top: 4px; width: 100%; justify-content: center; min-height: 48px; }
+.lab-done .lab-next { margin: 10px 0 0; }
+.lab-done .lab-next .btn { width: 100%; justify-content: center; }
+/* 영상이 막혔을 때 안내 한 줄 */
+.video-alt { display: block; margin-top: 4px; font-size: var(--fs-xs); color: var(--muted); }
+/* 패널 아래 여백(막대가 없어졌으므로) */
+html body.lab-mode .lab .lab-panel { padding-bottom: 16px; }
+
+/* ===== 9차 B ===== (planning/field-r9/10-synthesis.md D1·D2·D4·D5·D10·D11·D14·D15·D16·D19)
+ * 깔끔한 카드 원칙: 흰 면 + 회색 1px 테두리, 위쪽 색 줄·그라데이션 테두리 없음 */
+
+/* 작은 글자 단추: [보내는 방법] · [★ 도전 n개 ↓] · [드라이브로 보내는 방법] */
+.link-btn { display: inline-flex; align-items: center; min-height: 32px; padding: 2px 4px; border: 0; background: none; color: var(--blue-ink); font: inherit; font-size: var(--fs-sm); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; border-radius: 6px; }
+.link-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+@media (any-pointer: coarse) { .link-btn { min-height: 44px; } }
+.usb-note .link-btn { font-size: inherit; padding: 0 2px; min-height: 0; }
+.fine .link-btn { font-size: inherit; }
+.lab .run-how { margin: 4px 0 0; text-align: right; }
+
+/* D2: 실습 1 미션 1 2단계 '처음 한 번: 연결하기' 펼친 칸 */
+.run-first { margin: 6px 0 8px; padding: 6px 12px 8px; border-radius: var(--r-inner); background: #fff; border: 1px solid var(--line); }
+.run-first > summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; font-weight: 800; font-size: var(--fs-sm); color: var(--blue-ink); }
+.run-steps { margin: 4px 0 4px; padding-left: 1.4em; display: grid; gap: 4px; font-size: var(--fs-sm); }
+.run-img { display: block; width: 100%; max-width: 520px; height: auto; margin: 8px auto 0; border-radius: var(--r-inner); }
+
+/* D2: 로봇에서 실행하는 방법 창 — 기기 탭(회색 트랙 안 흰 엄지) */
+.run-guide .run-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 10px; padding: 3px; border-radius: 12px; background: rgba(20, 26, 51, .07); }
+.run-guide .run-tabs button { flex: 1 1 auto; min-height: 40px; padding: 6px 10px; border: 0; border-radius: 9px; background: none; color: var(--ink-2); font: inherit; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+.run-guide .run-tabs button[aria-selected="true"] { background: #fff; color: var(--violet-ink); box-shadow: 0 1px 3px rgba(20, 26, 51, .2); }
+.run-guide .run-tabs button:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.run-guide .run-mine { font-weight: 600; color: var(--muted); font-size: var(--fs-xs); }
+.run-guide .run-panel { min-height: 120px; }
+.run-guide .run-steps { font-size: var(--fs-md, 1rem); gap: 6px; }
+.run-guide .run-note { margin-top: 10px; }
+
+/* D1: MakeCode가 막혔을 때 툴바 상태 */
+.lab.mc-fail .tb-status { color: #8A3A00; }
+.lab.mc-fail .tb-status .dot { background: #E0A400; animation: none; }
+
+/* D4: 1단계 동안 로봇·검사 담당 할 일 한 줄(2단계부터 숨김) */
+.lab .roles-do { margin: 0 0 4px; font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; }
+.lab .mission:not([data-ms="make"]) .roles-do { display: none; }
+
+/* D4: 새 기기 첫 입장 안내(수업 소개) */
+.fresh-note { margin: 8px 0 0; padding: 8px 12px; border-radius: var(--r-inner); background: #fff; border: 1px solid var(--line); font-size: var(--fs-sm); color: var(--ink-2); }
+
+/* D10: 도전 카드 — ★★★ 심화, "어떻게 했나요?" 한 줄, 미리 보기, 완료 화면 머리 링크 */
+.challenge.star3 .ch-level { background: var(--blue-soft); color: var(--blue-ink); }
+.ch-note { display: grid; gap: 4px; margin: 0 0 8px; font-size: var(--fs-xs); font-weight: 700; color: var(--ink-2); }
+.ch-note input { font: inherit; font-weight: 500; font-size: var(--fs-sm); min-height: 40px; padding: 6px 10px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; }
+.ch-note input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.ch-preview { margin: 8px 0 2px; padding: 6px 12px; border-radius: var(--r-inner); background: #fff; border: 1px solid var(--line); }
+.ch-preview > summary { cursor: pointer; min-height: 36px; display: flex; align-items: center; font-weight: 800; color: var(--blue-ink); font-size: var(--fs-sm); }
+.ch-preview ul { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 8px; }
+.ch-preview li { font-size: var(--fs-sm); line-height: 1.45; }
+.ch-preview .ch-pv-text { display: block; margin-top: 2px; color: var(--ink-2); }
+.lab-done-head .ch-jump { margin: 2px 0 0; padding-left: 0; }
+/* ★7~8 페르소나 2회차 #6: 마지막 필수 미션 통과 뒤 [★ 도전 카드로 가기](미션 칸·성공 띠·완주 카드) */
+.ch-go { margin: 10px 0 0; }
+.lab-ch { margin-top: 12px; }
+
+/* D11: 자유 만들기 [안내] — 약속·만들 거리·기록·내 코드 저장 */
+.create-box { margin: 10px 0 0; padding: 12px 14px; border-radius: var(--r-inner); background: #fff; border: 1px solid var(--line); }
+.create-box h3 { margin: 0 0 6px; font-size: var(--fs-md, 1rem); }
+.create-box ol, .create-box ul { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; font-size: var(--fs-sm); }
+.create-box .fine { margin: 0 0 6px; }
+.create-log .field { display: grid; gap: 4px; margin: 6px 0 0; font-size: var(--fs-xs); font-weight: 700; color: var(--ink-2); }
+.create-log textarea { font: inherit; font-weight: 500; font-size: var(--fs-sm); padding: 6px 10px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; resize: vertical; }
+
+/* D14: 영상 자리 포스터(그림 + 3줄 + [영상 보기]) */
+.video-poster { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: #fff; border: 1px solid var(--line); }
+.video-poster .poster-img { display: block; width: 100%; height: auto; border-radius: 10px; }
+.video-poster .poster-lines { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: var(--fs-sm); }
+.video-poster .poster-play { margin: 0; }
+.video-poster .poster-play .btn { min-height: 44px; }
+
+/* D15: 진로 카드 */
+.careers { margin: 18px 0 0; }
+.careers h3 { margin: 0 0 8px; }
+.career-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; }
+.career-card { padding: 12px 14px; border-radius: var(--r-inner); background: #fff; border: 1px solid var(--line); }
+.career-card h4 { margin: 0 0 6px; font-size: 1rem; }
+.career-card p { margin: 0 0 4px; font-size: var(--fs-sm); line-height: 1.45; }
+.career-k { display: inline-block; margin-right: 6px; font-size: var(--fs-xs); font-weight: 800; color: var(--blue-ink); }
+.career-think { display: grid; gap: 4px; margin: 10px 0 0; font-weight: 700; font-size: var(--fs-sm); }
+.career-think input { font: inherit; font-weight: 500; min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; }
+
+/* D16: 블록 찾기 — 같은 색 서랍 구분 한 줄, 실습 1 실습 목표 안 엔트리 3줄·JavaScript 한 줄 */
+.fcard-twin { margin: 2px 0 0; font-size: var(--fs-xs); color: var(--ink-2); }
+.lab-about .entry-tips ul { list-style: disc; }
+.lab-about .text-code-note { margin: 6px 0 0; }
+
+/* D16(E3-02): 세로 태블릿 [코딩] 탭 서랍 — 2단계도 '지금 단계'(3줄 + [목표대로 됐어요][로봇이 안 움직여요]) */
+@media (min-width: 700px) and (max-width: 899px) and (min-height: 900px) {
+  .lab[data-view="code"] .mission.open .step.s2.now { display: block; }
+  .lab[data-view="code"] .mission.open .step.s2.now > .step-body > :not(.robot-steps):not(.step-acts) { display: none; }
+  .lab[data-view="code"] .mission.open .step.s2.now .robot-steps { margin-top: 0; }
+  .lab[data-view="code"] .mission.open .step.s2.now .step-acts { margin-top: 6px; }
+}
+
+/* D5: 결과 카드 — 미션 줄 메타(통과 방식·시각·그때 역할), 범례, 내 생각, 자유 만들기, 저장 알림 */
+.made-list .made-meta { display: block; margin: 0 0 4px 1.2em; font-size: var(--fs-xs); font-weight: 500; color: var(--muted); }
+.result-legend, .result-store { margin: 6px 0 0; font-size: var(--fs-xs); color: var(--muted); }
+.result-thoughts { margin: 12px 0 0; }
+.result-thoughts h2 { margin: 0 0 4px; font-size: 1rem; }
+.result-thoughts ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: var(--fs-sm); }
+.result-thoughts b { margin-right: 6px; color: var(--blue-ink); }
+.result-thoughts small { color: var(--muted); }
+.result-create { margin: 10px 0 0; font-size: var(--fs-sm); }
+.result-create b { margin-right: 6px; }
+.print-only { display: none; }
+@media print {
+  .main { margin-left: 0 !important; padding-top: 0 !important; }
+  .page { margin-left: auto !important; margin-right: auto !important; }
+  .result-card { margin: 0 auto !important; max-width: 760px; }
+  .result-actions, .fresh-note { display: none !important; }
+  .print-only { display: block !important; }
+  .result-sign { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid #ccd; font-size: 11pt; }
+  .result-sign p { margin: 0 0 6px; }
+}
+/* D15: 진로 그림(전체 폭, 눌러 크게 보기) */
+.careers .career-fig { margin: 0 0 10px; }
+.careers .career-fig img { display: block; width: 100%; height: auto; border-radius: var(--r-inner); }
+
+/* ===== 10차 L ===== (DESIGN.md 'UI 디자인 가이드 (10차)' 4·5 — 실습 화면, 교사·학생 공통)
+ * 1단계 = 카드 3장, 위에서부터 코드 확인(자동 확인, 늘 펼침) → 블록 찾기(접힘) → 힌트(접힘). 세 카드는 같은 폭.
+ * 카드: 흰 면 + 회색 1px 테두리 + 옅은 그림자(색 줄·그라데이션 테두리 없음, 8차). 여닫는 카드는 머리 전체가 단추(▾, aria-expanded)
+ * 패널 아래 막대 = 이론 페이지 아래 막대(.pager · .btn · .btn.primary)와 같은 모양. 패널 폭에서는 위치 글자 숨김 */
+html .lab .s1 > .step-body.lcards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 6px; }
+html .lab .step.s1.wait > .step-body.lcards, html .lab .step.s1.passed:not(.unfold) > .step-body.lcards { display: none; }
+.lcard { min-width: 0; margin: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--r-inner, 10px); box-shadow: 0 1px 2px rgba(20, 26, 51, .05), 0 6px 16px -12px rgba(20, 26, 51, .28); }
+.lcard .lc-h { margin: 0; font: inherit; }
+.lcard-head { display: flex; align-items: center; gap: 4px 8px; width: 100%; min-height: 44px; margin: 0; padding: 8px 12px; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; border-radius: inherit; }
+button.lcard-head { cursor: pointer; }
+button.lcard-head:hover { background: rgba(20, 26, 51, .035); }
+button.lcard-head:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.lcard.open > .lc-h > button.lcard-head { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.lc-title { flex: none; margin: 0; font-size: var(--fs-md); font-weight: 800; letter-spacing: -0.015em; color: var(--ink); }
+.lc-sum { flex: 1; min-width: 0; text-align: right; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); line-height: 1.35; }
+.lc-caret { flex: none; width: 16px; text-align: center; font-size: .9rem; color: var(--ink-2); transition: transform .15s ease; }
+.lc-caret::before { content: "\25BE"; }
+.lcard.open .lc-caret { transform: rotate(180deg); }
+.lcard-body { padding: 0 12px 12px; }
+.lcard-body[hidden] { display: none !important; }
+/* 코드 확인 카드: 머리 = 제목 + 상태 한 줄("자동으로 확인 중 · 3개 중 2개 맞음" / "통과!") */
+.check-card .lcard-head { flex-wrap: wrap; }
+.check-card .lc-sum { color: var(--violet-ink); }
+.check-card.pass .lc-sum { color: var(--green-ink); }
+html .lab .check-card .checklist { margin: 0; }
+html .lab .check-card .feedback { margin-top: 8px; }
+html .lab .check-card .feedback.live { font-size: var(--fs-sm); line-height: 1.5; }
+/* 블록 찾기 카드: 몸 = 옛 .finder 그대로(자동 ✓·검색어 칩·컴팩트 규칙 유지) */
+html .lab .lcard-body.finder { margin: 0; }
+/* 힌트 카드: 몸 = 본 힌트(최신 하나만 펼침) + [다음 힌트] */
+html .lab .hint-card .hints { margin: 0; }
+.hint-more { margin: 8px 0 0; }
+.hint-card .hints:empty + .hint-more { margin-top: 0; }
+.hint-card .why { margin: 6px 0 0; }
+/* 2단계 대기 안내는 그대로, 끝난 1단계를 "다시 보기"로 펼치면 카드 3장이 그대로 보인다 */
+.drawer-live { display: none; }
+/* 툴바 거울(패널 접힘·좁은 화면 [코딩] 탭): 1단계는 버튼 대신 자동 확인 상태 글 */
+.tb-live { display: inline-flex; align-items: center; min-height: 32px; padding: 2px 10px; border-radius: 999px; background: var(--violet-soft); color: var(--violet-ink); font-size: var(--fs-xs); font-weight: 800; white-space: nowrap; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; }
+
+/* 패널 아래 막대: 이론 pager와 같은 모양(유리 막대 + [이전](.btn) + [다음: …](.btn.primary)), 패널 맨 아래에 붙음 */
+.lab-foot { margin-top: auto; padding: 16px 0 4px; }
+html body .lab .pager.lab-pager { position: static; left: auto; right: auto; bottom: auto; width: auto; max-width: none; margin: 0; z-index: auto; gap: 8px; }
+.lab-pager .where { display: none; }
+.lab-pager > .btn { flex: none; }
+.lab-pager > .btn.primary { flex: 0 1 auto; min-width: 0; margin-left: auto; }
+.lab-pager .lp-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 세로 태블릿 [코딩] 탭 서랍(04 P1-2 → 10차): 1단계 = 상태 한 줄만, 2단계 = 상태 한 줄 + 3줄 + [목표대로 됐어요][로봇이 안 움직여요].
+   서랍 높이는 내용만큼(최대 34%) — 편집기를 더 넓게 */
+@media (min-width: 700px) and (max-width: 899px) and (min-height: 900px) {
+  html .lab[data-view="code"] .lab-main:has(.lab-view[data-pane="mission"]:not([hidden]) .mission.open) { grid-template-rows: minmax(0, 1fr) auto; }
+  html .lab[data-view="code"] .lab-panel:has(> .lab-view[data-pane="mission"]:not([hidden]) .mission.open) { max-height: 34vh; }
+  html .lab[data-view="code"] .mission.open .mbody > .drawer-live { display: block; margin: 0; font-size: var(--fs-sm); font-weight: 800; color: var(--violet-ink); line-height: 1.4; }
+  html .lab[data-view="code"] .mission.open[data-ms="robot"] .mbody > .drawer-live { color: var(--green-ink); }
+  html .lab[data-view="code"] .mission.open .step.s1 { display: none; }
+  html .lab[data-view="code"] .mission.open .step.s2.now { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+}
+/* 교사 툴바 [✦ 바이브코딩] 단추: 반짝이 아이콘과 글자를 한 줄로(사용자 요청 2026-10-21) */
+.lab-toolbar [data-ws] { display: inline-flex; align-items: center; gap: 6px; }
+.lab-toolbar [data-ws] .ai-ic { flex: none; color: var(--violet, #6C76E9); }
+
+/* ===== 페르소나 2회차(5~6 검토) 코어 수정 =====
+ * #10 1366에서 실습 미션 칸 360px 이상(기록표 칸 이름·블록 그림이 덜 꺾이게). MakeCode는 iframe 약 992px 아래에서 태블릿형이 되므로
+ *     900~1425px에서는 편집기 좌우 여백(6+4)을 0으로 해 iframe 폭을 예전과 같게 둔다: 1366 − 패널 360 − 테두리 2 = 1004 */
+@media (min-width: 900px) and (max-width: 1425px) {
+  body.lab-mode { --lab-panel-w: clamp(360px, calc(100vw - 1006px), 400px); }
+  .lab .lab-editor { padding-left: 0; padding-right: 0; }
+  .lab .frame-wrap { padding-left: 0; padding-right: 0; }
+}
+/* #3 선택 미션(m.optional): 진행 점 테두리를 점선으로, 점 아래 '선택' */
+.mstep:has(li.opt) { margin-bottom: 14px; }
+.mstep li.opt { position: relative; }
+.mstep li.opt button:not(.ms-done):not([aria-current="step"]) { box-shadow: inset 0 0 0 2px transparent; outline: 2px dashed var(--line-strong); outline-offset: -2px; }
+.mstep .ms-opt { position: absolute; right: 0; top: 100%; width: 32px; text-align: center; font-size: 10px; line-height: 1.3; font-weight: 800; color: var(--muted); pointer-events: none; }
+.opt-tag { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); }
+.mhead .opt-tag { margin-left: 4px; padding: 1px 6px; border-radius: 999px; background: var(--surface-2); vertical-align: middle; }
+/* #19 코드 확인 카드 아래 한 줄(L.textCodeLine) */
+html .lab .text-code-line { margin: 0; padding: 0 4px; font-size: var(--fs-xs); color: var(--muted); }
+/* #20 블록 찾기 "코드로 보면"(blockDict[id].code) */
+.fcard-code { font-size: var(--fs-xs); }
+.fcard-code > summary { cursor: pointer; color: var(--blue-ink); font-weight: 700; }
+.fcard-code code { display: block; margin-top: 4px; padding: 4px 8px; border-radius: 6px; background: var(--surface-2); white-space: pre-wrap; word-break: break-all; font-family: ui-monospace, Consolas, monospace; }
+/* #31 결과 카드 통과 방식 범례: 아이콘 + 단어 */
+.result-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.result-legend .lg { display: inline-flex; align-items: center; gap: 4px; }
+.result-legend .lg svg { flex: none; color: var(--violet-ink); }
+.result-legend .lg-k { font-weight: 700; }
+/* #5 교사 수업 계획 옆 "시작 코드 번호: ****" */
+.dash-plan h3 .starter-pin { margin-left: 12px; font-size: var(--fs-sm); font-weight: 700; color: var(--muted); }
+.dash-plan h3 .starter-pin .link-btn { font-weight: 800; letter-spacing: .08em; font-variant-numeric: tabular-nums; }

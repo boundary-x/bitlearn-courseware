@@ -1,0 +1,347 @@
+/* ==========================================================================
+   brand.css — 바운더리엑스 로고 (바운더리엑스 로고 사용 지침, 2026-10-18)
+   1) 메인 로고: 컬러 로고 assets/brand/boundaryx-logo.png (1547×271) — 기본으로 이것을 쓴다
+   2) 배경 색이 강할 때: 흰색 로고 assets/brand/boundaryx-logo-white.png (1605×333)
+      — 도움 요청 주황 상단 바, 진한 남색 스튜디오 머리
+   3) 간단한 심볼이 필요할 때: assets/brand/boundaryx-symbol.png (49×50) — 파비콘, 좁은 폰 상단 바, 작은 표식
+   로고 이미지는 다시 칠하거나 늘리지 않는다(높이만 지정, 비율 유지). 크기는 px 고정이라 투사 150%에서 커지지 않는다.
+   ========================================================================== */
+.bx-logo, .bx-logo-white { flex: none; display: inline-block; width: auto; vertical-align: middle; object-fit: contain; }
+.bx-symbol { flex: none; display: block; object-fit: contain; }
+
+/* ---------- 상단 바: [☰] [컬러 로고 20] │ AI 포니봇 ---------- */
+.topbar .brand {
+  display: flex; align-items: center; min-width: 0; overflow: hidden;
+  background: none; -webkit-text-fill-color: currentColor; color: var(--ink);
+}
+.topbar .brand .bx-logo { height: 20px; }
+.topbar .brand .bx-logo-white, .topbar .brand .bx-symbol { display: none; }
+.topbar .brand .bx-symbol { width: 22px; height: 22px; }
+.topbar .brand-sep { flex: none; width: 1px; height: 22px; margin: 0 12px; background: var(--line); }
+.topbar .brand-name {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--violet-ink);
+}
+.topbar .brand-name small { -webkit-text-fill-color: var(--muted); color: var(--muted); }
+
+/* 선생님 부르기(주황 바) = 강한 배경 → 흰색 로고 */
+body.help-req .topbar .brand .bx-logo { display: none; }
+body.help-req .topbar .brand .bx-logo-white { display: inline-block; height: 20px; }
+body.help-req .topbar .brand .brand-sep { background: rgba(255, 255, 255, .55); }
+body.help-req .topbar .brand .brand-name { background: none; -webkit-text-fill-color: #fff; color: #fff; }
+
+/* 학교가 상업 노출을 줄이길 원할 때: 상단 바는 심볼만 */
+body.brand-min .topbar .brand .bx-logo, body.brand-min .topbar .brand .bx-logo-white { display: none; }
+body.brand-min .topbar .brand .bx-symbol { display: block; }
+
+@media (max-width: 1199px) { .topbar .brand-name small { display: none; } }
+@media (max-width: 520px) {
+  /* 좁은 폰: 간단한 심볼만 */
+  .topbar .brand .bx-logo, body.help-req .topbar .brand .bx-logo-white { display: none; }
+  .topbar .brand .bx-symbol { display: block; }
+  .topbar .brand-sep { margin: 0 10px; }
+}
+
+/* ---------- 입장 화면: 카드 맨 위 메인 로고 ---------- */
+.gate-lockup { display: flex; align-items: center; margin: 0 0 20px; }
+.gate-lockup .bx-logo { height: 26px; }
+@media (max-width: 520px) { .gate-lockup .bx-logo { height: 22px; } }
+
+/* ---------- 내 결과 카드 바닥글: [메인 로고] AI 포니봇 교육 ---------- */
+.result-brand {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 18px 0 0; padding-top: 14px;
+  border-top: 1px solid var(--line); font-size: .85rem; font-weight: 700; color: var(--muted);
+}
+.result-brand .bx-logo { height: 18px; }
+@media (max-width: 700px) { .result-brand { justify-content: center; } }
+
+/* ---------- 교사 대시보드: 머리 태그 점 = 심볼, 지원 카드 = 메인 로고 ---------- */
+.page.dash > .section-tag::before {
+  width: 16px; height: 16px; border-radius: 0;
+  background: url(../assets/brand/boundaryx-symbol.png) center / contain no-repeat;
+}
+.dash-support .bx-lockup, .bx-lockup { display: flex; align-items: center; margin: 0 0 12px; }
+.bx-lockup .bx-logo { height: 24px; }
+.dash-support .fine { margin-top: 10px; }
+
+/* ---------- 스튜디오 ---------- */
+.studio-head .bx-logo-white { height: 15px; margin-right: 4px; }
+.studio-empty .bx-logo { height: 14px; margin-top: 2px; }
+.studio-empty .bx-symbol { width: 32px; height: 32px; }
+
+@media print {
+  .bx-logo, .bx-logo-white, .bx-symbol { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- 캐릭터 '바운디' · 포니봇 3D 아이콘 ---------- */
+.art { display: block; height: auto; user-select: none; pointer-events: none; }
+.gate-card { position: relative; }
+.gate-mascot { position: absolute; top: -46px; right: 18px; width: 96px; filter: drop-shadow(0 10px 18px rgba(44, 59, 223, .18)); }
+.hero-art { position: relative; display: flex; align-items: flex-end; justify-content: center; margin: 0 auto 10px; max-width: 340px; }
+.hero-pb { width: 74%; filter: drop-shadow(0 14px 20px rgba(20, 26, 51, .22)); }
+.hero-boundy { width: 30%; margin-left: -8%; margin-bottom: 4%; }
+.lab-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lab-head .lab-title { flex: 1; min-width: 0; }
+.lab-icon { width: 96px; height: auto; flex: none; filter: drop-shadow(0 8px 12px rgba(20, 26, 51, .2)); }
+.finder-title { display: flex; align-items: center; gap: 8px; }
+.finder-mascot { width: 40px; flex: none; }
+.feedback.show .fb-mascot { float: left; width: 46px; margin: -2px 10px 0 0; }
+.feedback.show::after { content: ''; display: block; clear: both; }
+.modal-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+.modal-hero h2 { margin: 0; }
+.modal-hero p { margin: 4px 0 0; }
+.modal-mascot { width: 76px; flex: none; }
+.modal-pb { width: 120px; flex: none; }
+.ov-box { display: grid; justify-items: center; gap: 6px; }
+.ov-mascot { width: 84px; }
+.result-led { position: relative; }
+.result-mascot { width: 110px; margin: 12px auto 0; }
+.quiz-mascot { width: 96px; margin: 0 auto 8px; }
+.studio-mascot { width: 72px; height: auto; }
+/* 바이브코딩 AI 말풍선 앞에 바운디 */
+.smsg.ai { position: relative; margin-left: 40px; }
+.smsg.ai::before { content: ''; position: absolute; left: -40px; top: 0; width: 32px; height: 32px; border-radius: 50%; background: #EEF6FF url("../assets/brand/char/boundy-hello.webp") center 30% / 130% auto no-repeat; box-shadow: 0 0 0 1px var(--line); }
+@media (max-width: 899px) { .gate-mascot { width: 72px; top: -34px; } .lab-icon { width: 72px; } .modal-mascot { width: 60px; } .modal-pb { width: 92px; } }
+/* 진한 소개 패널 위의 검은 포니봇이 묻히지 않게 뒤에 은은한 빛 */
+.hero-art::before { content: ''; position: absolute; inset: 4% 6% -6%; border-radius: 50%; background: radial-gradient(closest-side, rgba(171, 214, 255, .55), rgba(108, 118, 233, .18) 60%, transparent); }
+.hero-art .art { position: relative; }
+
+/* 4차 테스트: 390px 입장 화면에서 바운디 머리 잘림 → 카드 안쪽 모서리로 */
+@media (max-width: 599px) { .gate-mascot { top: 10px; right: 10px; width: 58px; } }
+/* AI 답 말풍선은 캐릭터 얼굴 대신 AI 표시(AI 의인화 우려, 교사 테스트 4차) */
+.smsg.ai::before { content: 'AI'; display: grid; place-items: center; font: 800 13px/1 Pretendard, sans-serif; color: #fff; background: var(--grad); box-shadow: none; }
+/* 결과 카드 인쇄 */
+@media print {
+  .topbar, .rail, .scrim, .pager, .toast, .help-banner, .menu-btn { display: none !important; }
+  body, .page { background: #fff !important; }
+  .result-card { box-shadow: none !important; border: 1px solid #ccd; break-inside: avoid; }
+  .result-led .art, .result-led .matrix { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ==========================================================================
+   UI/UX 5차 구현 C — 디자인 시스템(01) · 시각 자료(09)   (planning/uiux-r5/impl-C.md)
+   - 토큰은 app.css :root. 이 파일은 components.css 뒤에 오므로 그 규칙은 같은 선택자로 덮고,
+     이 파일보다 뒤에 오는 studio.css 규칙은 앞에 `html` 을 붙여 한 단계 구체적으로 덮는다.
+   - 덮는 속성은 모양(색·모서리·글자 크기·높이)만. 배치(순서·폭·표시 여부)는 각 담당 파일을 따른다.
+   ========================================================================== */
+
+/* ---------- 01 P0-1 선택 상태: 흰 엄지 + 2px 보라 링 + 보라 글자 (그라데이션은 주 버튼 전용) ---------- */
+html .lab-seg button[aria-selected="true"],
+.dir-pad button.on {
+  color: var(--sel-ink); background: #fff; background-image: none;
+  box-shadow: var(--sel-ring), var(--sel-shadow);
+}
+html .lab-seg { padding: 2px; }
+/* 보조(테두리) 버튼: 블록 찾기 = 일반 보조 버튼(파란 링 변형 폐기) */
+html .finder-btn { box-shadow: inset 0 0 0 1.5px var(--line-strong), var(--shadow-ctl); }
+html .finder-btn:hover { box-shadow: inset 0 0 0 2px var(--violet), 0 8px 18px -10px rgba(44, 59, 160, .5); }
+/* 실습 도구 막대: 미션 패널이 보이면 패널 안 [코드 확인하기]가 주 버튼 → 막대의 [코드 확인]은 보조 */
+.lab[data-view="mission"]:not(.collapsed) .tb-mission .btn:not([disabled]) {
+  color: var(--blue-ink); background-image: none; background-color: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line-strong), var(--shadow-ctl);
+}
+.lab[data-view="mission"]:not(.collapsed) .tb-mission .btn:not([disabled]):hover { box-shadow: inset 0 0 0 2px var(--violet); }
+/* 방향 패드: 누를 수 있는 면 = 흰 면 + 보이는 링 */
+.dir-pad button:not(.on) { background-color: #fff; box-shadow: inset 0 0 0 1.5px var(--line-strong), var(--shadow-ctl); }
+.dir-pad button:not(.on):hover { box-shadow: inset 0 0 0 2px var(--violet); }
+
+/* ---------- 01 P0-2 누를 수 없는 배지·태그: 모서리 6px, 테두리·그림자 없음, 손 커서 없음 ---------- */
+.role-badge { border-radius: var(--r-xs); font-size: var(--fs-xs); padding: 2px 8px; cursor: default; }
+.role-badge.student { background: var(--blue-ink); }   /* 흰 글자 7.5:1 */
+.role-badge.teacher { background: var(--violet); }     /* 흰 글자 5.4:1 */
+html .ws-chip, html .ch-level, html .sdiff, html .studio-mode, html .studio-four span, html .create-card .star, html .ai-badge,
+.rail-badge, .game-reward {
+  border-radius: var(--r-xs); border: 0; box-shadow: none; font-size: var(--fs-xs); cursor: default;
+}
+html .ai-badge { background: var(--violet); }           /* 그라데이션 알약 → 단색 배지 */
+
+/* ---------- 01 P0-3 입력칸·선택지·상태 경계 = --line-strong(3:1 이상) ---------- */
+.field input, .field textarea, .field select { border-color: var(--line-strong); background-color: #fff; }
+html .studio-input textarea, html .studio-code input, html .predict input, html .smsg.understand input, html .simv-speed select {
+  border: 1.5px solid var(--line-strong); background-color: #fff;
+}
+html .predict input { min-height: var(--ctl-md); }
+
+/* ---------- 01 P1-4 브랜드 밖 색 정리 + 주황·금색 기능색 토큰 ---------- */
+.gate::after { background: linear-gradient(140deg, #6C76E9, #4E5AE4); }
+.bonus { background: linear-gradient(120deg, rgba(222, 239, 254, .8), rgba(228, 231, 253, .8)); }
+.bonus.done { background: var(--green-soft); }
+body.teacher:not(.help-req) .topbar { background: linear-gradient(90deg, rgba(240, 242, 255, .8), rgba(232, 234, 253, .8)); }
+html .create-card { background: linear-gradient(135deg, rgba(106, 187, 252, .16), rgba(108, 118, 233, .16)); }
+html .studio-head { background: var(--ink); }
+.help-banner { background: var(--amber-strong); }
+.help-banner .btn:not(.ghost) { color: var(--amber-text); }
+.assist-lead, .toast.warn, html .smsg.info, html .create-card.pending, html .simv-real, html .fb-sim {
+  background: var(--amber-soft); border-color: var(--amber-line); color: var(--amber-ink);
+}
+.warn-text, html .fcard-far { color: var(--amber-text); }   /* 경고 글자 하나로(#B45309·#7C2D12 → 흰 바탕 7.3:1) */
+html .ch-level { background: var(--gold-soft); color: var(--gold-ink); }
+html .challenge.bonus .ch-level { background: var(--violet-soft); color: var(--violet-ink); }
+.usb-note { background: var(--violet-soft); }
+.btn.nudge { background-color: var(--violet-soft); box-shadow: inset 0 0 0 2px var(--violet), 0 0 0 4px rgba(108, 118, 233, .18); }
+html .seg-dot { background: var(--violet); }
+
+/* ---------- 01 P1-5 글자 하한: 학생이 읽는 글자는 13px(--fs-xs) 이상, 출처만 12px(--fs-2xs) ---------- */
+.credit { font-size: var(--fs-2xs); }
+.seq-n, .step h4 span, .checkpoint-note, .tbl thead th, .make-card em { font-size: var(--fs-xs); }
+html .studio-ic, html .studio-trust, html .sres-sub, html .studio-four, html .simv-time, html .fcard-ok, html .simv-legend { font-size: var(--fs-xs); }
+html .smsg.result pre { font-size: var(--fs-xs); }
+html .result-stats dt small, .result-stats dt small { font-size: inherit; font-weight: 500; }
+
+/* ---------- 01 P1-6 유리 위 유리 → 우물(--surface-2) ---------- */
+/* 결과 카드 통계 칸: 흰 유리(.82) 위 반투명 흰 칸은 1.01:1로 칸이 사라짐 → 옅은 잉크 우물로 칸을 구분 */
+.result-stats div { background: var(--surface-2); border: 0; border-radius: var(--r-inner); }
+.made-card { background: var(--surface-2); border-color: transparent; border-radius: var(--r-inner); }   /* 결과 카드(5차 B 구조)의 실습 칸 */
+/* 미션 카드 안 하위 상자: 면 하나(우물), 모서리 하나(--r-inner) — '지금 단계'(.step.now)만 링으로 강조 */
+.goal-img { background: var(--surface-2); border: 0; border-radius: var(--r-inner); }
+html .pair-role { border-radius: var(--r-inner); }
+html .fcard-img { border-radius: var(--r-xs); background: var(--surface-2); }
+
+/* ---------- 01 P1-7 컨트롤 높이: 학생이 누르는 버튼·탭·칩·펼치기 44px, 선택지·입장·방향 패드 52px ---------- */
+.btn.small { min-height: var(--ctl-md); }
+html .lab-seg button, html .studio-chip, html .simv-speed select { min-height: var(--ctl-md); }
+.gate-form button[type="submit"], .dir-pad button { min-height: var(--ctl-lg); }
+html .studio-ic { min-width: var(--ctl-sm); height: var(--ctl-sm); }
+html .lab-toolbar { padding-top: 3px; padding-bottom: 3px; }   /* 44px 컨트롤 + 세그 2px×2 → 막대 약 54px */
+@media (any-pointer: coarse) {
+  html .studio-ic { min-width: var(--ctl-md); height: var(--ctl-md); }
+  html .studio-head { height: 52px; }
+}
+/* 펼치기(details) 하나의 모양: 44px 줄 + 꺾쇠(교사 정답 모음과 같은 모양). '그림으로 보기' 23px → 44px */
+details > summary {
+  display: flex; align-items: center; gap: 8px; min-height: var(--ctl-md);
+  cursor: pointer; list-style: none;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: ""; flex: none; width: 8px; height: 8px; margin: 0 2px 0 1px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg); transition: transform .2s;
+}
+details[open] > summary::before { transform: rotate(45deg); }
+/* OLED 위젯 슬라이더: 높이 28 → 44px, 큰 손잡이 (04 P1-3) */
+.oled-ctl input[type="range"] { -webkit-appearance: none; appearance: none; height: var(--ctl-md); background: transparent; cursor: pointer; }
+.oled-ctl input[type="range"]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: rgba(78, 90, 228, .25); }
+.oled-ctl input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 50%; background: var(--violet); box-shadow: 0 0 0 3px #fff, 0 2px 8px -2px rgba(44, 59, 160, .6); }
+.oled-ctl input[type="range"]::-moz-range-track { height: 8px; border-radius: 4px; background: rgba(78, 90, 228, .25); }
+.oled-ctl input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--violet); box-shadow: 0 0 0 3px #fff; }
+.oled-ctl input[type="range"]:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
+
+/* ---------- 09 P0-1 그림 크게 보기 3단계(전체 → 2배 → 원래 크기), 휴대폰은 2배로 시작 ---------- */
+.modal-wrap .zoom-fig[data-zoom="x2"] .zoom-scroll img { width: 200%; max-width: none; max-height: none; }
+.modal-wrap .zoom-fig[data-zoom="actual"] .zoom-scroll img { width: auto; max-width: none; max-height: none; }
+.zoom-hint { margin: 0; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); text-align: center; }
+.zoom-fig[data-zoom="fit"] .zoom-hint { display: none; }
+/* 좁은 화면: 인포그래픽을 화면 끝까지(바깥 여백 16px를 그림에 돌려줌) */
+@media (max-width: 900px) {
+  html .ig-row { margin-inline: -16px; }
+  html .ig-row .figure.ig { border-radius: 0; border-inline: 0; padding: 8px 0; }
+  html .ig-row .figure.ig img { border-radius: 0; }
+  html .ig-row .figure.ig figcaption { padding-inline: 16px; }
+}
+
+/* ---------- 투사: 배치는 일반 모드와 같게(9차). 인포그래픽만 화면 높이를 넘지 않게 ---------- */
+body.present .ig-row .figure.ig img { max-height: calc(100vh - var(--top-h) - 190px); }
+
+/* ---------- 09 P1-4 이론 글만 있는 쪽: 인포그래픽·트리오·사진 띠의 오른쪽 끝선을 980px로 ---------- */
+.trio { max-width: 980px; }
+
+/* ---------- 09 P1-5 '크게 보기'를 그림 위 장식 배지 → 캡션 줄의 진짜 버튼으로(그림 속 글자를 가리지 않게) ---------- */
+html .figure.ig::after, html .goal-img::after { content: none; display: none; }
+.figure.ig figcaption, .goal-img figcaption { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.zoom-btn {
+  margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: var(--ctl-sm); padding: 4px 12px;
+  border: 0; border-radius: var(--r-pill); background: #fff; box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  font: inherit; font-size: var(--fs-xs); font-weight: 800; color: var(--blue-ink); cursor: pointer; white-space: nowrap;
+}
+.zoom-btn:hover { box-shadow: inset 0 0 0 2px var(--violet); }
+.zoom-btn svg { width: 16px; height: 16px; flex: none; }
+.figure.ig figcaption .zoom-btn, .goal-img figcaption .zoom-btn { order: 1; }
+.figure.ig figcaption .credit, .goal-img figcaption .credit { order: 2; flex-basis: 100%; margin-top: 0; }
+@media (any-pointer: coarse) { .zoom-btn { min-height: var(--ctl-md); } }
+
+/* ---------- 09 P1-6 블록 찾기 카드: 모든 블록 그림을 같은 배율(편집기 100%)로, 칸이 좁을 때만 줄임 ----------
+   그림은 2배 해상도 PNG(makecode.js svgToPng scale 2) → zoom .5 = 원래 크기. 최대 폭 200%(= 확대 전 칸 폭 100%) */
+html .fcard-img { justify-content: flex-start; }
+html .fcard-img img { zoom: .5; width: auto; height: auto; max-width: 200%; max-height: none; object-fit: contain; }
+
+/* ---------- 09 P1-7 화면 속 포니봇 OLED 미리보기: 정수 배율(점 1개 = 2px) · OLED 전용 코드면 경로 캔버스 숨김 ---------- */
+html .simv-oled canvas { width: 256px; max-width: 100%; height: auto; }
+.simv.oled-only .simv-stage, .simv.oled-only .simv-legend { display: none; }
+.simv.oled-only .simv-oled, .simv.oled-only .simv-goal { flex-direction: column; align-items: flex-start; }
+.simv.oled-only .simv-goal { background: transparent; border: 0; padding: 0; }
+.simv.oled-only .simv-goal img { width: var(--oled-w, 268px); max-width: 100%; height: auto; max-height: 240px; object-fit: contain; border-radius: var(--r-xs); background: #fff; box-shadow: 0 0 0 1px var(--line); }
+html .simv-goal img { cursor: zoom-in; }
+
+/* ---------- 09 P1-8 트리오 카드 출처: 설명 글과 같은 15px로 보이던 우선순위 버그 · 흰 배경 사진 · 출처 창 휴대폰 ---------- */
+.trio p.credit, body.present .trio p.credit { margin: 6px 0 0; font-size: var(--fs-2xs); font-weight: 500; color: var(--muted); }
+.trio img { mix-blend-mode: multiply; }
+@media (max-width: 900px) { .trio p.credit { grid-column: 2; } }
+@media (max-width: 560px) {
+  .credit-table thead { display: none; }
+  .credit-table, .credit-table tbody { display: block; width: 100%; }
+  .credit-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2px 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .credit-table td { display: block; padding: 0; border: 0; }
+  .credit-table td:first-child { grid-column: 1 / -1; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); }
+  .credit-table td:last-child { color: var(--muted); }
+}
+
+/* ---------- 05 P1-5 순차구조 위젯: 블록 색 위 흰 글자 1.6~3.8:1 → 4.5:1 이상 (블록 색은 띠·면으로 유지) ----------
+   지난·지금 줄 = 블록 색 면 + 진한 글자(#58ACFA 7.1:1, #1E90FF 5.3:1), 모자 블록 = #A800A8 + 흰 글자 6.5:1,
+   아직 안 한 줄 = 연한 면 + 블록 색 띠(흐리게 하지 않음), 지난 줄 = ✓ */
+.seq-code li, .seq-code li.past { opacity: 1; }
+.seq-b { color: #141A33; }
+.seq-b.hat { color: #fff; }
+.seq-code li:not(.run):not(.past) .seq-b { background: #EEF1F7; color: var(--ink-2); box-shadow: inset 4px 0 0 var(--c); }
+.seq-code li.past .seq-b::after { content: " ✓"; font-weight: 800; }
+
+@media (forced-colors: active) {
+  html .lab-seg button[aria-selected="true"], .zoom-btn { outline: 3px solid Highlight; }
+  .checklist li::before { border-color: CanvasText; }
+}
+
+/* ---------- 캐릭터 2차: 런모어·함께 (로고 없는 버전) ----------
+   원본 14_제품설계/06_2족 보행 로봇/01_제품사진/02_출시/캐릭터_로고없음_60종, 자리·이유는 planning/characters-round2.md
+   그림 파일은 표시 크기의 약 2배(긴 변 320~520px). 한 자리에 캐릭터 그림 하나만. */
+/* 수업 소개: 포니봇 + 바운디 두 장 → 함께 길 찾기 장면 한 장 (진한 패널 위 은은한 빛은 .hero-art::before 그대로) */
+.hero-art .hero-scene { width: 100%; max-width: 270px; filter: drop-shadow(0 12px 18px rgba(8, 10, 30, .35)); }
+/* 메카넘휠 이론: 본문 끝에 옆으로 가는 포니봇 장면(장식, 크게 보기 없음) */
+.theory .body .theory-art { width: min(100%, 260px); margin: 14px auto 0; }
+@media (max-width: 600px) { .theory .body .theory-art { width: min(100%, 220px); } }
+/* 막혔어요 · 로봇이 안 움직여요 창: 가로로 긴 장면이라 마스코트(76px)보다 넓게 */
+.modal-scene { width: 136px; flex: none; }
+@media (max-width: 899px) { .modal-scene { width: 112px; } }
+@media (max-width: 420px) { .modal-scene { width: 92px; } .modal-hero { gap: 10px; } }
+/* 실습 완주 카드: 56px 칸 대신 카드 위쪽 가운데에 미션 성공 장면 (studio.css 뒤에 오므로 html로 한 단계 높임) */
+html .robot-done.lab-win { grid-template-columns: minmax(0, 1fr); }
+html .robot-done.lab-win .win-art { width: min(100%, 200px); justify-self: center; margin-bottom: -4px; }
+/* 결과 카드: 모두 완주하면 함께 하이파이브 (LED 판 폭에 맞춤) */
+.result-led .result-duo { width: 180px; }
+/* 교사 대시보드: 머리 오른쪽에 안내하는 런모어, 아래 카드 줄은 그림 아래에서 시작 */
+.page.dash > .dash-guide { float: right; width: 96px; margin: 0 8px 0 16px; }
+.page.dash > .dash-start { clear: both; }
+@media (max-width: 600px) { .page.dash > .dash-guide { width: 68px; margin: 0 0 0 10px; } }
+@media print { .dash-guide { display: none; } }
+
+/* =====================================================================
+ * 8차(사용자 지시): 깔끔한 카드 — 카드 위 색 가로선·그라데이션 테두리를 쓰지 않는다.
+ * 카드 = 흰 면 + 옅은 회색 테두리 1px + 모서리 + 옅은 그림자. 강조가 필요하면 제목 글자색으로만.
+ * ===================================================================== */
+html .trio article,
+html .flow div {
+  background: var(--glass-solid);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+}
+html .flow div { padding: 16px; }
+html .trio article { padding: 16px; }
+/* 선택된 역할(입장 화면): 그라데이션 테두리 → 보라 2px 테두리 */
+html .role-btn.on, html .role-btn[aria-checked="true"] {
+  background: #fff;
+  border-color: var(--violet);
+  box-shadow: 0 0 0 1px var(--violet), var(--shadow-1);
+}
+/* 실습 완주 카드·자유 만들기 카드: 그라데이션 테두리·틴트 → 깔끔한 카드 */
+html .robot-done.lab-win { background: var(--glass-solid); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
+html .create-card { background: var(--glass-solid); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
+html .create-card.pending { background: #FFF7ED; border-color: #FDBA74; box-shadow: none; }

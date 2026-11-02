@@ -1,0 +1,158 @@
+/* ==========================================================================
+   motion.css — 이론 페이지 [원리 보기 | 직접 해 보기] 탭 · 모션 플레이어 · 본문 장면 강조
+   토큰은 app.css :root. 컴포지션(.mo-comp)은 독립 HTML(HyperFrames 렌더)에서도 이 파일만으로 보이게 작성.
+   ========================================================================== */
+
+/* ---------- 미디어 탭 ---------- */
+.media-tabs {
+  display: flex; gap: 4px; padding: 4px; margin: 0 0 12px;
+  background: var(--glass); border: 1px solid var(--glass-line); border-radius: var(--r-md); box-shadow: var(--shadow-1);
+}
+.media-tabs [role="tab"] {
+  flex: 1 1 0; min-height: var(--ctl-md, 44px); padding: 8px 12px; border: 0; border-radius: 10px; background: none;
+  color: var(--muted); font-weight: 800; font-size: var(--fs-md, 1rem); letter-spacing: -0.01em;
+  transition: background-color .15s, color .15s, box-shadow .15s;
+}
+.media-tabs [role="tab"]:hover { background: rgba(255, 255, 255, .66); color: var(--ink); }
+/* 선택 상태 = 흰 엄지 + 2px 보라 링(01 P0-1). 그라데이션은 '다음' 같은 주 버튼에만 */
+.media-tabs [role="tab"][aria-selected="true"] { color: var(--sel-ink, #2C3BDF); background: #fff; box-shadow: var(--sel-ring, inset 0 0 0 2px #4E5AE4), var(--sel-shadow, 0 6px 14px -8px rgba(44, 59, 160, .45)); }
+.media-tabs [role="tab"]:focus-visible { outline-offset: 2px; }
+
+/* ---------- 컴포지션(무대 4:3) ---------- */
+.mo-comp {
+  position: relative; container-type: inline-size; background: #F7F8FE; color: #141A33;
+  font-family: var(--font-body, "Pretendard", "Pretendard Variable", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif);
+}
+.mo-svg { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; overflow: hidden; }
+.mo-svg text { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+/* 자막: HTML 층(번역·스크린리더). 장면마다 타임라인이 opacity로 교체 */
+.mo-caps { position: absolute; left: 3%; right: 3%; bottom: 3.2%; display: grid; justify-items: center; align-items: end; pointer-events: none; }
+.mo-cap {
+  grid-area: 1 / 1; margin: 0; max-width: 100%; padding: .42em .9em; border-radius: 12px;
+  background: rgba(255, 255, 255, .95); color: #141A33; font-weight: 700; line-height: 1.42; text-align: center;
+  font-size: max(1rem, 3.3cqw); letter-spacing: -0.015em; word-break: keep-all; text-wrap: balance;
+  box-shadow: 0 0 0 1px rgba(20, 26, 51, .10), 0 8px 20px -12px rgba(49, 46, 129, .5);
+}
+/* GSAP 전(불러오는 중·실패): 1장면 끝 그림만 보이게 */
+.mo-static [data-f="0"] { visibility: hidden; }
+.mo-static .mo-cap:not(:first-child) { visibility: hidden; }
+/* 좁은 칸(폰): 자막을 무대 아래로 내려 그림을 가리지 않게 */
+@container (max-width: 440px) {
+  .mo-caps { position: static; padding: 8px 6px 10px; background: #fff; border-top: 1px solid rgba(20, 26, 51, .08); }
+  .mo-cap { font-size: .95rem; padding: 0 4px; background: none; box-shadow: none; }
+}
+
+/* ---------- 플레이어 ---------- */
+.mo-player { background: var(--glass); border: 1px solid var(--glass-line); border-radius: var(--r-lg); padding: 12px; box-shadow: var(--shadow-1), var(--hl); }
+.mo-stage { position: relative; border-radius: var(--r-md); overflow: hidden; background: #F7F8FE; box-shadow: inset 0 0 0 1px var(--line); }
+.mo-stage:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.mo-player.cap-off .mo-caps { display: none; }
+
+/* 포스터: 1장면 끝 그림 위에 재생 버튼(자동재생 안 함) */
+.mo-poster {
+  position: absolute; inset: 0; display: none; place-content: center; justify-items: center; gap: 12px;
+  padding: 0; border: 0; border-radius: inherit; cursor: pointer; color: var(--ink);
+  background: transparent; /* 포스터 그림 자체가 정보 → 가리지 않음 */
+}
+.mo-player[data-state="poster"] .mo-poster, .mo-player[data-state="loading"] .mo-poster { display: grid; }
+.mo-poster-btn {
+  width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  background: var(--grad); box-shadow: var(--glow), 0 0 0 6px rgba(255, 255, 255, .75);
+  transition: transform .15s;
+}
+.mo-poster-btn svg { width: 30px; height: 30px; margin-left: 4px; }
+.mo-poster:hover .mo-poster-btn { transform: scale(1.06); }
+.mo-poster:focus-visible { outline: 3px solid var(--focus); outline-offset: -6px; }
+.mo-poster-meta {
+  padding: 5px 12px; border-radius: 999px; background: rgba(255, 255, 255, .94); box-shadow: 0 0 0 1px var(--line);
+  font-size: .86rem; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.mo-player[data-state="loading"] .mo-poster-btn { opacity: .75; }
+
+.mo-fail {
+  display: none; margin: 10px 0 0; padding: 8px 12px; border-radius: 10px;
+  background: var(--amber-soft, #FFF7ED); border: 1px solid var(--amber-line, #FDBA74); color: var(--amber-ink, #7C2D12); font-size: var(--fs-sm, .875rem); font-weight: 700;
+}
+.mo-player[data-state="failed"] .mo-fail { display: block; }
+.mo-player[data-state="failed"] .mo-scenes, .mo-player[data-state="failed"] .mo-ctrl { display: none; }
+
+/* 장면 칩 = 분절 진행 막대 */
+.mo-scenes { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 4px; }
+.mo-chip {
+  width: 100%; min-height: var(--ctl-md, 44px); display: grid; gap: 5px; align-content: start; padding: 8px 4px 6px;
+  border: 0; border-radius: 10px; background: none; color: var(--muted);
+  font-size: var(--fs-xs, .8125rem); font-weight: 700; line-height: 1.25; text-align: center; word-break: keep-all;
+  transition: background-color .15s, color .15s;
+}
+.mo-chip:hover { background: rgba(255, 255, 255, .7); color: var(--ink); }
+.mo-chip b { font-weight: 800; margin-right: 1px; }
+.mo-seg { display: block; height: 6px; border-radius: 3px; background: rgba(20, 26, 51, .12); overflow: hidden; }
+.mo-seg i { display: block; height: 100%; border-radius: inherit; background: var(--grad-line); transform: scaleX(var(--p, 0)); transform-origin: 0 50%; }
+.mo-chip[aria-current="step"] { color: var(--violet-ink); background: rgba(255, 255, 255, .82); box-shadow: inset 0 0 0 1.5px rgba(78, 90, 228, .35); }
+.mo-chip:focus-visible { outline-offset: 1px; }
+
+/* 컨트롤(자동으로 숨기지 않음) */
+.mo-ctrl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.mo-btn {
+  flex: none; min-width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 0; border: 0; border-radius: 999px; color: var(--ink); background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line-strong, #7F87B2); font-weight: 800; font-size: var(--fs-sm, .875rem); letter-spacing: -0.01em;
+}
+.mo-btn svg { width: 22px; height: 22px; flex: none; }
+.mo-btn:hover { background: #fff; box-shadow: inset 0 0 0 2px var(--violet); }
+/* 재생/일시정지는 보조 버튼(포스터 재생과 겹치지 않게), '다음 장면·다시 보기'(.strong)만 주 버튼 (01 P0-1) */
+.mo-play { color: var(--ink); background: #fff; box-shadow: inset 0 0 0 1.5px var(--line-strong, #7F87B2); }
+.mo-play:hover { background: #fff; box-shadow: inset 0 0 0 2px var(--violet); }
+.mo-play.has-text { padding: 0 16px 0 12px; }
+.mo-play.strong { color: #fff; background: var(--grad); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), var(--glow); }
+.mo-play.strong:hover { background: var(--grad); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 14px 28px -12px rgba(78, 90, 228, .8); }
+/* 모션 조작 줄의 칩·토글도 44px(학생 터치 목표, 01 P1-7 · 04 P1-3) */
+.mo-skip {
+  min-height: var(--ctl-md, 44px); padding: 6px 14px; border: 0; border-radius: 999px; background: #fff;
+  color: var(--blue-ink); font-size: var(--fs-sm, .875rem); font-weight: 800; box-shadow: inset 0 0 0 1.5px var(--line-strong, #7F87B2);
+}
+.mo-skip:hover { background: #fff; box-shadow: inset 0 0 0 2px var(--violet); }
+.mo-time { font-size: var(--fs-xs, .8125rem); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mo-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.mo-tog {
+  min-height: var(--ctl-md, 44px); padding: 6px 12px; border: 0; border-radius: 999px; background: #fff;
+  color: var(--muted); font-size: var(--fs-xs, .8125rem); font-weight: 800; box-shadow: inset 0 0 0 1.5px var(--line-strong, #7F87B2);
+}
+.mo-tog[data-opt="speed"] { min-width: var(--ctl-md, 44px); }
+.mo-tog:hover { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 2px var(--violet); }
+.mo-tog[aria-pressed="true"] { color: var(--violet-ink); background: var(--violet-soft); box-shadow: inset 0 0 0 2px var(--violet); }
+.mo-tog[aria-pressed="true"]::before { content: "✓ "; }
+.mo-tog[data-opt="speed"]::before { content: none; }
+
+/* 글로 보기(모든 장면 자막 + 설명) */
+.mo-text { margin-top: 10px; background: rgba(255, 255, 255, .62); border-radius: var(--r-md); border: 1px solid var(--line); }
+.mo-text summary { cursor: pointer; padding: 10px 14px; min-height: 44px; display: flex; align-items: center; font-weight: 700; color: var(--blue-ink); border-radius: var(--r-md); }
+.mo-text summary:hover { background: rgba(255, 255, 255, .6); }
+.mo-text ol { margin: 0; padding: 0 16px 12px 16px; list-style: none; display: grid; gap: 10px; font-size: .93rem; }
+.mo-text li b { color: var(--violet-ink); margin-right: 4px; }
+.mo-text li p { margin: 2px 0 0; color: var(--muted); }
+
+/* 투사 모드: 컨트롤 56px, 칩 44px 이상, 자막은 루트 글씨 150%로 자동 확대 */
+body.present .mo-btn { min-width: 56px; height: 56px; }
+body.present .mo-btn svg { width: 26px; height: 26px; }
+body.present .mo-chip { min-height: 48px; }
+body.present .mo-tog { min-height: 44px; }
+body.present .mo-poster-btn { width: 80px; height: 80px; }
+body.present .mo-poster-btn svg { width: 36px; height: 36px; }
+
+/* ---------- 본문 장면 강조(색 막대, 움직임 아님 → 움직임 줄이기에서도 유지) ---------- */
+.theory .body [data-scene] { position: relative; border-radius: 8px; transition: background-color .25s; }
+.theory .body [data-scene].scene-on { background-color: rgba(78, 90, 228, .07); }
+.theory .body [data-scene].scene-on::before {
+  content: ""; position: absolute; left: -12px; top: .15em; bottom: .15em; width: 3px; border-radius: 3px; background: var(--grad-v);
+}
+
+@media (forced-colors: active) {
+  .media-tabs [role="tab"], .mo-btn, .mo-chip, .mo-tog { border: 1px solid ButtonText; }
+  .media-tabs [role="tab"][aria-selected="true"], .mo-chip[aria-current="step"], .mo-tog[aria-pressed="true"] { outline: 3px solid Highlight; }
+  .theory .body [data-scene].scene-on::before { background: Highlight; }
+}
+@media print {
+  .mo-scenes, .mo-ctrl, .mo-poster { display: none !important; }
+  .mo-text { display: block; }
+}

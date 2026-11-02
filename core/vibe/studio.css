@@ -1,0 +1,27 @@
+.composer-mode-select { width: 100%; min-height: 40px; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 10px; background-color: #f8f9fa; color: #111; font-size: 12px; font-weight: 600; cursor: pointer; }
+.composer-mode-select:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+.composer-replace-note { margin: 7px 2px 0; font-size: 12px; line-height: 1.5; color: #92400e; }
+.composer-status { margin: 7px 2px 0; font-size: 12px; line-height: 1.5; color: #666; }
+.composer-status button { text-decoration: underline; text-underline-offset: 3px; }
+.composer-repair { margin-top: 7px; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.repair-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.repair-actions button { border-radius: 10px; padding: 9px 12px; font-size: 12px; border: 1px solid #d1d5db; background: white; color: #111; font-weight: 600; }
+.repair-actions button:first-child { background: #111; color: white; border-color: #111; }
+.repair-expired { display: block; margin-top: 8px; font-size: 11px; color: #666; }
+button:disabled { cursor: default; opacity: .45; }
+.footer-brand { display: flex; align-items: center; gap: 12px; }
+.studio-icon-button { min-width: 28px; min-height: 28px; font-size: 16px; line-height: 1; }
+[data-tour="studio-header"] img { color: white; }
+.help-button { color: #fff; border: 1px solid #777; border-radius: 20px; padding: 3px 9px; font-size: 11px; white-space: nowrap; }
+button:focus-visible { outline: 3px solid #3b82f6; outline-offset: 3px; }
+.tour-backdrop { position: fixed; inset: 0; z-index: 1000; }
+.tour-highlight { position: fixed; z-index: 1001; border: 3px solid #93c5fd; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(5, 12, 26, .72); pointer-events: none; transition: top .18s, left .18s, width .18s, height .18s; }
+.tour-card { position: fixed; z-index: 1002; top: 16px; left: 12px; width: calc(100vw - 24px); max-height: calc(100vh - 24px); overflow-y: auto; border-radius: 18px; padding: 20px; background: white; color: #111827; box-shadow: 0 12px 45px #0005; }
+.tour-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #64748b; font-size: 11px; }
+.tour-topline button { padding: 5px; }
+.tour-card h2 { font-size: 19px; font-weight: 800; margin: 14px 0 10px; line-height: 1.4; }
+.tour-card p { font-size: 13px; line-height: 1.8; color: #475569; margin: 0 0 18px; }
+.tour-actions { display: flex; justify-content: space-between; gap: 12px; }
+.tour-actions button { padding: 9px 18px; border-radius: 10px; border: 1px solid #d1d5db; font-size: 13px; }
+.tour-actions .tour-next { background: #111827; color: white; border-color: #111827; }
+@media (prefers-reduced-motion: reduce) { .tour-highlight { transition: none; } }

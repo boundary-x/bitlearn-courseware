@@ -1,0 +1,2 @@
+/* 자동 생성 파일: node tools/build.js — 선생님 확인(통과 처리만)용 봉투. 정답은 들어 있지 않다 */
+window.ASSIST_ENC = {"v":2,"iter":250000,"keys":[{"salt":"CWoEDC+Dz0qIQ1Bh0K2uMQ==","iv":"s2ErzsZPvRuTTyUe","wrapped":"DlsLZ7dY63D0zCXftMI2/LFnSsEqsVTHBX4V/HlLFywvOllNueRBnR+6o5E7wXXY"},{"salt":"TtqkaXrwgfQRW856qvAt8Q==","iv":"ywr4VrUCYnbbL2dP","wrapped":"8OaSf7GxHyHcAWVRUKWBuVUDxrv7x7TSNeHy1JSyaSF2KTrbyXRzm+cpsFlB8y46"}],"iv":"7+Iwj9TjU6R4/qSw","data":"rMX3800b4kRQtOr//udhNLPsTk/U0gK958Nko490c8cqUaVJ5DhP8xyNk4Ha9wN67KbbWNx/YBxEICBB4HE="};

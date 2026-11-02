@@ -1,0 +1,15 @@
+{
+  "series": "bitrun",
+  "lessons": [
+    "lesson-bitrun01",
+    "lesson-bitrun02",
+    "lesson-bitrun03",
+    "lesson-bitrun04",
+    "lesson-bitrun05",
+    "lesson-bitrun06",
+    "lesson-bitrun07",
+    "lesson-bitrun08"
+  ],
+  "sourceCommit": "26bf516a9e0b8f9beb141fd454adbde1f41724f0",
+  "builtAt": "2026-11-02T07:17:31.187Z"
+}

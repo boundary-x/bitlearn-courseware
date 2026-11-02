@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- 차시 index.html은 core/index.template.html에서 만든다(node tools/lesson.js new·sync). 직접 고치지 말고 템플릿을 고친 뒤 node tools/lesson.js sync --all -->
+<html lang="ko">
+<head>
+<meta name="robots" content="noindex,nofollow">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>비트런 6화</title>
+  <link rel="icon" type="image/png" href="../core/assets/brand/boundaryx-symbol.png">
+  <meta name="description" content="바운더리엑스 AI 비트런 연구소 탈출 작전 6화: 두 다리를 반대로 움직여 제자리에서 돌고, 시간으로 90도를 맞추고, 동작을 함수로 묶어 이름을 붙여 불러 써요.">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+  <link rel="stylesheet" href="../core/css/app.css">
+  <link rel="stylesheet" href="../core/css/components.css">
+  <link rel="stylesheet" href="../core/css/brand.css">
+  <link rel="stylesheet" href="../core/css/motion.css">
+  <link rel="stylesheet" href="../core/css/studio.css">
+  <link rel="stylesheet" href="../core/css/game.css">
+</head>
+<body>
+  <a class="skip-link" id="skipLink" href="#view">본문으로 건너뛰기</a>
+  <header class="topbar">
+    <button class="menu-btn" id="menuBtn" type="button" aria-controls="rail" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="menu-label">목차</span>
+    </button>
+    <div class="brand"><img class="bx-logo" src="../core/assets/brand/boundaryx-logo.png" alt="boundaryX" width="114" height="20"><img class="bx-logo-white" src="../core/assets/brand/boundaryx-logo-white.png" alt="boundaryX" width="96" height="20"><img class="bx-symbol" src="../core/assets/brand/boundaryx-symbol.png" alt="boundaryX" width="22" height="22"><span class="brand-sep" aria-hidden="true"></span><span class="brand-name">AI 비트런 <small>갈림길에서 도는 법, 이름 붙인 명령</small></span></div>
+    <div class="spacer"></div>
+    <div class="present-tools" id="presentTools" hidden></div>
+    <span class="user-chip" id="userChip"></span>
+    <a class="progress-link" id="progressLink" href="#/me" hidden><span class="progress-label" id="topLabel"></span><div id="topLed"></div></a>
+  </header>
+  <nav class="rail" id="rail" aria-label="수업 목차"></nav>
+  <div class="scrim" id="scrim"></div>
+  <main class="main" id="view"></main>
+  <div id="gate"></div>
+  <div id="live" class="sr" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="../core/js/series.js"></script>
+  <script src="../core/js/series-bitrun.js"></script>
+  <script src="js/lesson.js"></script>
+  <script src="js/config.js"></script>
+  <script src="../core/js/lesson-load.js"></script>
+  <script src="../core/js/auth.js"></script>
+  <script src="../core/js/makecode.js"></script>
+  <script src="../core/js/engine.js"></script>
+  <script src="js/lesson-missions.js"></script>
+  <script src="../core/js/widgets.js"></script>
+  <script src="../core/js/widgets-game.js"></script>
+  <script src="js/lesson-widgets.js"></script>
+  <script src="../core/js/motion.js"></script>
+  <script src="../core/js/scenes-lib.js"></script>
+  <script src="js/lesson-scenes.js"></script>
+  <script src="../core/js/guides.js"></script>
+  <script src="../core/js/vibe-host.js"></script>
+  <script src="../core/js/review.js"></script>
+  <script src="../core/js/story.js"></script>
+  <script src="../core/js/makecode-grade.js"></script>
+  <script src="../core/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+/* 웹앱판 아이콘: 원본은 Font Awesome(cdnjs)을 불러왔다. 학교망에서 cdnjs가 막히면 ⚙️(접속키) 버튼이 빈칸이 되므로
+ * 원본이 쓰는 9개 클래스만 자체 SVG(직접 그린 단순 선 아이콘)로 그린다. 글자 색(currentColor)을 따른다. */
+.fa-solid, .fa-regular { display: inline-block; width: 1em; height: 1em; line-height: 1; vertical-align: -0.125em; font-style: normal; }
+.fa-solid::before, .fa-regular::before {
+  content: ''; display: block; width: 100%; height: 100%; background-color: currentColor;
+  -webkit-mask: var(--ic) no-repeat center / contain; mask: var(--ic) no-repeat center / contain;
+}
+.fa-gear { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3Cpath d='M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1'/%3E%3Ccircle cx='12' cy='12' r='6.2'/%3E%3C/svg%3E"); }
+.fa-key { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='15' r='4.5'/%3E%3Cpath d='M11.3 11.7L20 3M16.5 6.5l2.5 2.5M14 9l2 2'/%3E%3C/svg%3E"); }
+.fa-xmark { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E"); }
+.fa-trash-can { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E"); }
+.fa-paper-plane { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M21.5 2.5L2.8 10.2c-.8.3-.7 1.4.1 1.6l6.6 1.9 1.9 6.6c.2.8 1.3.9 1.6.1z'/%3E%3C/svg%3E"); }
+.fa-copy { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round'%3E%3Crect x='8' y='8' width='12' height='12' rx='2'/%3E%3Cpath d='M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8'/%3E%3C/svg%3E"); }
+.fa-check { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 12.5l5 5 10-11'/%3E%3C/svg%3E"); }
+.fa-book-open { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.1' stroke-linejoin='round'%3E%3Cpath d='M12 6.5C10 5 7 4.5 3 5v13c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5V5c-4-.5-7 0-9 1.5zM12 6.5v13'/%3E%3C/svg%3E"); }
+.fa-arrow-up-right-from-square { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4h6v6M20 4l-9 9M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10'/%3E%3C/svg%3E"); }
+
+/* 웹앱판 터치 목표(7차 R7-06-P0-4): 손가락으로 쓰는 화면(any-pointer: coarse)에서 원본의 작은 조작 요소를 44px 이상으로.
+ * 원본 파일(studio.css·tailwind-output.css·app.js)은 그대로 두고 여기서 덮는다. 선택자는 title·aria-label·data-tour·구조로 잡고,
+ * 원본 클래스명에 기대는 곳은 그 근거(원본 studio.css의 규칙)를 적었다. 여기 규칙이 tailwind 한 클래스(.w-8 등)보다 구체적이라 이긴다. */
+@media (any-pointer: coarse) {
+  /* 머리 줄: ⚙ 접속키(title="접속키 설정", 원본 28×28), 설정 창의 × 닫기(원본 18×24)·확인 및 닫기(높이 32)·접속키 입력칸(높이 42) */
+  [data-tour="studio-header"] button { min-width: 44px; min-height: 44px; }
+  [data-tour="access-settings"] { padding: 0 6px; }
+  /* 버튼이 커진 만큼 머리 줄(원본 첫 줄 div의 py-2)과 바닥 줄(footer의 py-2) 위아래 여백을 빼서 대화 칸 높이를 지킨다 */
+  [data-tour="studio-header"] > div:first-child { padding-top: 0; padding-bottom: 0; }
+  #studio-content > footer { padding-top: 3px; padding-bottom: 3px; } /* 테두리 있는 사용법 버튼이 바닥 줄 끝에 닿지 않게 3px만 */
+  [data-tour="studio-header"] input { min-height: 44px; }
+  /* 코드 도구 줄: 설명(높이 30)·생성 코드 복사·대화 초기화(title="대화 초기화", 원본 w-9 h-9 = 36×36) */
+  [data-tour="code-tools"] button { min-height: 44px; }
+  [data-tour="code-tools"] button[title="대화 초기화"] { width: 44px; height: 44px; }
+  /* 작성 방식 목록(aria-label="코드 작성 방식", 원본 높이 40)과 그 아래 글자 버튼:
+   * 다시 확인(원본 .composer-status 안 밑줄 버튼 45×18)·오류 자동 수정하기(원본 .composer-repair) */
+  [data-tour="code-context"] select, [data-tour="code-context"] button { min-height: 44px; }
+  [data-tour="code-context"] .composer-status button { display: inline-flex; align-items: center; padding: 0 8px; vertical-align: middle; }
+  /* 대화 속 오류 수정 버튼 두 개(원본 .repair-actions, 높이 38) */
+  [data-tour="chat-history"] button { min-height: 44px; }
+  /* 전송(title="전송하기", 원본 w-8 h-8 = 32×32). 입력칸 오른쪽 여백(pr-14 = 56px) 안에 들어간다 */
+  button[title="전송하기"] { width: 44px; height: 44px; }
+  /* 사용법 알아보기(원본 .help-button, 높이 25): 바닥 줄 */
+  #studio-content > footer button { min-height: 44px; padding-left: 14px; padding-right: 14px; }
+  /* 사용법 안내 창(role=dialog)의 닫기(26)·이전·다음(40) */
+  .studio-tour [role="dialog"] button { min-width: 44px; min-height: 44px; }
+}
