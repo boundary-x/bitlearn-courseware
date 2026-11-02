@@ -48,7 +48,7 @@
       const full = ranks.length === S;
       el.innerHTML = `<div class="widget rr8" id="${id}">
         ${o.title ? `<p class="rr8-title">${esc(o.title)}</p>` : ''}
-        <p class="fine" id="${id}-how">① 카드를 누르면 빈 순위 칸에 들어가요. ② 칸의 [빼기]로 다시 꺼내요. ③ 순위마다 까닭을 한 줄 적어요.</p>
+        <p class="fine" id="${id}-how">① 중요하다고 생각하는 규칙부터 차례로 눌러요. ② 순서를 바꾸려면 [빼기]를 누르고 다시 골라요. ③ 그 순서로 정한 까닭을 한 줄씩 적어요.</p>
         <ul class="rr8-cards" aria-describedby="${id}-how">${cards.map((c) => { const r = ranks.indexOf(c.id); return `<li><button type="button" class="rr8-card" data-card="${esc(c.id)}" aria-pressed="${r >= 0}" ${decided ? 'disabled' : ''}>${r >= 0 ? `<b aria-hidden="true">${r + 1}</b>` : ''}${esc(c.text)}${r >= 0 ? `<span class="sr"> (${r + 1}순위)</span>` : ''}</button></li>`; }).join('')}</ul>
         <ol class="rr8-slots" aria-label="우리 모둠 순위">${Array.from({ length: S }, (_, i) => { const c = byId(ranks[i]); return `<li class="rr8-slot${c ? ' full' : ''}"><span class="rr8-n">${i + 1}순위</span><span class="rr8-txt">${c ? esc(c.text) : '<span class="fine">빈 칸</span>'}</span>${c ? `<input type="text" maxlength="80" data-why="${esc(c.id)}" aria-label="${i + 1}순위 까닭" placeholder="${esc(o.reasonPh || '이 순위인 까닭')}" value="${esc(reasons[c.id] || '')}" ${decided ? 'disabled' : ''}>${decided ? '' : `<button type="button" class="btn small rr8-x" data-out="${esc(c.id)}">빼기</button>`}` : ''}</li>`; }).join('')}</ol>
         <p>${decided ? `<button type="button" class="btn small" data-redo>순서 다시 정하기</button>` : `<button type="button" class="btn primary" data-go aria-disabled="${!full}">우리 순서 정하기</button>`} <span class="fine" data-need></span></p>

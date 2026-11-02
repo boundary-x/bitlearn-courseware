@@ -56,15 +56,15 @@
     const steps = () => (kits ? (kits[kit] || []) : (o.steps || []));
     const doneOf = () => { if (!doneSets[kit]) doneSets[kit] = new Set(); return doneSets[kit]; };
     const store = () => { const d = {}; Object.keys(doneSets).forEach((k) => { d[k] = [...doneSets[k]]; }); ctx.setData({ kit, done: d }); };
-    const crewLine = (i) => (o.crew ? `<p class="bb-crew">이번 단계 손: <b>${(i % 4) + 1}번 자리</b> 친구 · 다른 친구는 그림과 똑같은지 봐 줘요.</p>` : '');
+    const crewLine = (i) => (o.crew ? `<p class="bb-crew">이번에 조립할 친구: <b>${(i % 4) + 1}번 자리</b> 친구 · 다른 친구는 그림과 똑같은지 봐 줘요.</p>` : '');
     function draw(focusSel) {
       const S = steps(), D = doneOf(), n = S.length, all = n > 0 && D.size >= n;
       if (at >= n) at = Math.max(0, n - 1);
       const s = S[at] || {};
       el.innerHTML = `<div class="widget bb">
         <div class="bb-top">${o.title ? `<p class="bb-title">${esc(o.title)}</p>` : ''}${o.intro ? `<p class="fine" style="margin:0">${o.intro}</p>` : ''}
-          ${kits ? `<div class="bb-kit" role="group" aria-label="키트 판 고르기"><span class="fine">우리 키트:</span>${kitKeys.map((k) => `<button type="button" data-kit="${k}" aria-pressed="${kit === k}">${esc(KIT_LABEL[k] || k)}</button>`).join('')}</div>${o.kitNote ? `<p class="fine" style="margin:0">${o.kitNote}</p>` : ''}` : ''}</div>
-        ${!kit ? '<p class="bb-tip">먼저 <b>우리 키트</b>를 골라요. 준비물 쪽에서 리벳 나사 모양으로 V1·V2를 알아봤어요.</p>' : `
+          ${kits ? `<div class="bb-kit" role="group" aria-label="키트 종류 고르기"><span class="fine">우리 키트:</span>${kitKeys.map((k) => `<button type="button" data-kit="${k}" aria-pressed="${kit === k}">${esc(KIT_LABEL[k] || k)}</button>`).join('')}</div>${o.kitNote ? `<p class="fine" style="margin:0">${o.kitNote}</p>` : ''}` : ''}</div>
+        ${!kit ? '<p class="bb-tip">먼저 <b>우리 키트</b>를 골라요. 준비물 화면에서 확인한 V1 또는 V2 키트를 골라요.</p>' : `
         <p class="bb-prog" aria-live="polite">별 <b>${D.size}</b> / ${n} <span class="bb-stars" aria-hidden="true">${S.map((_, i) => (D.has(i) ? '★' : '☆')).join('')}</span></p>
         <ol class="bb-dots" aria-label="단계 고르기">${S.map((x, i) => `<li><button type="button" data-go="${i}" class="${D.has(i) ? 'ok' : ''}" ${i === at ? 'aria-current="step"' : ''} aria-label="${i + 1}단계 ${esc(x.label || '')}${D.has(i) ? ' (했어요)' : ''}">${i + 1}</button></li>`).join('')}</ol>
         <article class="bb-card" tabindex="-1" aria-label="${at + 1}단계">
@@ -93,7 +93,7 @@
       const ok = el.querySelector('[data-ok]');
       if (ok) ok.addEventListener('click', () => {
         const D = doneOf(), S = steps();
-        if (D.has(at)) { D.delete(at); store(); draw('[data-ok]'); ctx.announce(`${at + 1}단계를 다시 안 한 것으로 바꿨어요.`); return; }
+        if (D.has(at)) { D.delete(at); store(); draw('[data-ok]'); ctx.announce(`${at + 1}단계의 완료 표시를 취소했어요.`); return; }
         D.add(at); store();
         const all = D.size >= S.length;
         let lit = false;

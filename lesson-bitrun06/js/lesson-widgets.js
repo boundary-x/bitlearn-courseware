@@ -46,13 +46,13 @@
     const sign = (n) => (n > 0 ? '+' + n : n < 0 ? '−' + Math.abs(n) : '0');
     function result() {
       const { l, r } = st;
-      if (l === 's' && r === 's') return { k: 'stop', t: '멈춰 있어요', d: '두 다리 모두 0이에요.' };
-      if (l === 'f' && r === 'f') return { k: 'forward', t: '앞으로 걸어요', d: '두 다리가 모두 앞으로 바닥을 밀어요. 숫자는 왼쪽 +, 오른쪽 −로 부호가 달라요(거울처럼 마주 달려서요).' };
+      if (l === 's' && r === 's') return { k: 'stop', t: '멈춰 있어요', d: '두 다리의 서보 속도 값이 모두 0이에요.' };
+      if (l === 'f' && r === 'f') return { k: 'forward', t: '앞으로 걸어요', d: '두 다리가 앞으로 걷도록 움직여요. 서보가 서로 마주 보게 달려 있어서 속도 값의 부호는 왼쪽 +, 오른쪽 −로 달라요.' };
       if (l === 'b' && r === 'b') return { k: 'backward', t: '뒤로 걸어요', d: '앞으로 갈 때와 두 다리 부호가 모두 반대예요.' };
       if (l === 'f' && r === 'b') return { k: 'spinR', t: '제자리에서 오른쪽으로 돌아요', d: '두 다리가 반대로 움직여요. 숫자는 두 다리 부호가 같아요(둘 다 +).' };
       if (l === 'b' && r === 'f') return { k: 'spinL', t: '제자리에서 왼쪽으로 돌아요', d: '두 다리가 반대로 움직여요. 숫자는 두 다리 부호가 같아요(둘 다 −).' };
-      if (r === 's') return { k: 'arc', t: l === 'f' ? '오른쪽으로 크게 돌아요' : '뒤로 크게 돌아요', d: '한 발만 굴러요. 멈춘 다리를 축으로 크게 돌아요.' };
-      return { k: 'arc', t: r === 'f' ? '왼쪽으로 크게 돌아요' : '뒤로 크게 돌아요', d: '한 발만 굴러요. 멈춘 다리를 축으로 크게 돌아요.' };
+      if (r === 's') return { k: 'arc', t: l === 'f' ? '오른쪽으로 크게 돌아요' : '뒤로 크게 돌아요', d: '한쪽 다리만 움직여요. 멈춘 다리를 중심으로 크게 돌아요.' };
+      return { k: 'arc', t: r === 'f' ? '왼쪽으로 크게 돌아요' : '뒤로 크게 돌아요', d: '한쪽 다리만 움직여요. 멈춘 다리를 중심으로 크게 돌아요.' };
     }
     const legHTML = (side, name) => `<div class="br-leg" role="group" aria-label="${name}"><h4>${name}</h4>
       <div class="br-row" role="radiogroup" aria-label="${name} 움직임">${DIR.map((d) => `<button type="button" class="btn small" data-side="${side}" data-dir="${d.k}" aria-pressed="false">${d.t}</button>`).join('')}</div></div>`;
@@ -62,7 +62,7 @@
       <div class="br-legs">${legHTML('l', '왼쪽 다리')}${legHTML('r', '오른쪽 다리')}</div>
       <div class="br-leg"><h4>빠르기(두 다리 같이)</h4><div class="br-row" role="radiogroup" aria-label="빠르기">${SP.map((s) => `<button type="button" class="btn small" data-sp="${s.v}" aria-pressed="false">${s.t} ${s.v}</button>`).join('')}</div></div>
       <div class="br-out" aria-live="polite"><p class="br-fine">코드로 보면(연속 서보 속도)</p><p class="br-code" data-code></p><p class="br-res" data-res></p><p class="br-fine" data-why></p><p class="br-fine" data-goal></p></div>
-      <p class="br-fine">화면 속 계산이에요. 진짜 비트런은 바닥·건전지·모터마다 조금씩 달라요. 실습에서 직접 확인해요.</p></div>`;
+      <p class="br-fine">화면에서는 예상 움직임을 보여 줘요. 실제 움직임은 바닥 상태, 건전지와 모터에 따라 달라질 수 있어요. 실습에서 직접 확인해요.</p></div>`;
     const draw = () => {
       el.querySelectorAll('[data-dir]').forEach((b) => b.setAttribute('aria-pressed', String(st[b.dataset.side] === b.dataset.dir)));
       el.querySelectorAll('[data-sp]').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.sp === st.sp)));
@@ -131,18 +131,18 @@
     const read = () => [...el.querySelectorAll('input[data-i]')].map((x) => x.value.trim());
     const show = (ns) => { res.textContent = '우리 모둠 함수 이름: ' + ns.join(' · '); pair.hidden = false; };
     if (saved.names && saved.names.every(Boolean)) show(saved.names);
-    if (saved.ok) why.textContent = '짝 확인 끝! 실습에서 이 이름으로 함수를 만들어요.';
+    if (saved.ok) why.textContent = '짝이 동작을 맞혔어요! 실습에서 이 이름으로 함수를 만들어요.';
     el.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.pick != null) { const x = el.querySelector(`#fnn-${b.dataset.pick}`); x.value = b.dataset.t; x.focus(); return; }
       if (b.hasAttribute('data-save')) {
         const ns = read();
         if (ns.some((n) => !n)) { res.textContent = ''; why.innerHTML = '<span class="warn">빈 이름이 있어요. 네 동작에 모두 이름을 붙여요.</span>'; return; }
-        if (new Set(ns).size < ns.length) { res.textContent = ''; why.innerHTML = '<span class="warn">같은 이름이 두 번 있어요. 이름이 같으면 비트런이 어느 동작인지 몰라요.</span>'; return; }
+        if (new Set(ns).size < ns.length) { res.textContent = ''; why.innerHTML = '<span class="warn">같은 이름이 두 번 있어요. 서로 다른 동작을 구분할 수 있도록 이름도 다르게 지어요.</span>'; return; }
         if (ns.some((n) => /^[0-9]/.test(n))) { res.textContent = ''; why.innerHTML = '<span class="warn">MakeCode 함수 이름은 숫자로 시작할 수 없어요.</span>'; return; }
         why.textContent = ''; show(ns); if (ctx.setData) ctx.setData({ names: ns, ok: !!saved.ok }); saved.names = ns;
       }
-      if (b.hasAttribute('data-ok')) { saved.ok = true; why.textContent = '짝 확인 끝! 실습에서 이 이름으로 함수를 만들어요.'; if (ctx.setData) ctx.setData({ names: saved.names || read(), ok: true }); if (ctx.done) ctx.done(); }
+      if (b.hasAttribute('data-ok')) { saved.ok = true; why.textContent = '짝이 동작을 맞혔어요! 실습에서 이 이름으로 함수를 만들어요.'; if (ctx.setData) ctx.setData({ names: saved.names || read(), ok: true }); if (ctx.done) ctx.done(); }
     });
   }
 
