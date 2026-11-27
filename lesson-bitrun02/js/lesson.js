@@ -122,6 +122,7 @@ window.LESSON = {
     {
       // PPT L2R S9~S14. 선 색 S·V·G(S12). 링비트 쉴드 '장치 3개'(S14). 건전지 AAA 3개(S17·S43 준비물). 서보는 연속회전형이지만 2화에서는 '다리를 돌린다'까지만(속도·방향은 5화)
       type: 'theory', id: 't-parts', section: '2화 · 박사의 연구실', title: '비트런의 부품과 하는 일',
+      widget: 'bitrun-parts-3d',
       layout: 'stack',
       body: '<p>보관함 속 부품은 1화에 배운 로봇의 세 부분과 짝을 이뤄요.</p>'
         + '<table class="credit-table"><thead><tr><th scope="col">부품</th><th scope="col">로봇에서 맡은 역할</th><th scope="col">하는 일</th></tr></thead><tbody>'

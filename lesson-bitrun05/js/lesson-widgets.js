@@ -150,3 +150,10 @@
   window.Widgets.register('stop-practice', stopPractice);
   window.Widgets.register('fn-names', fnNames);
 })();
+
+window.Widgets.register('bitrun-corridor-3d', (el, opts, ctx) => {
+  import('../../core/js/bitrun-interactive.js').then(m => { if (el.isConnected) m.mountCorridor(el, opts, ctx); }).catch(() => {
+    el.textContent = '체험을 불러오지 못했어요. 이야기는 계속할 수 있어요. ';
+    const button = document.createElement('button'); button.type = 'button'; button.textContent = '이야기 계속하기'; button.addEventListener('click', () => ctx.done()); el.append(button);
+  });
+});

@@ -20,11 +20,13 @@
   const logo = (btn, at = 1000) => ({ name: 'logo', label: '로고: 모두 멈춤', run: { ms: at + 300, press: [{ btn, at: 100 }, { btn: 'logo', at }] },
     timeline: [{ at: at + 200, expect: { servos: { all: { stopped: true } } } }],
     msg: '도는 중에 로고를 터치하면 두 다리가 모두 바로 멈춰야 해요. "로고를 터치하면" 안의 두 "서보 정지"는 그대로 둬요.' });
-  // 90도: 회전 → 일시중지 → 정지. 0.9초에는 돌고 있고(일시중지가 회전보다 앞이면 걸림) 끝(4.5초)에는 멈춤(정지가 없으면 걸림). 일시중지 1600~3000ms 모두 통과
-  const turn90 = { name: 'turn90', label: 'A: 정한 시간만큼 돌고 멈춤', run: { ms: 4500, press: press('A') },
-    timeline: [{ at: 900, expect: { servos: leg({ sign: '+' }, { sign: '+' }) } }],
+  // 기록표의 200~8000ms를 허용한다. 체크 표정의 표시 시간을 포함해 기다린 뒤 돈 적과 정지를 확인한다.
+  const turn90 = { name: 'turn90', label: 'A: 정한 시간만큼 돌고 멈춤', run: { ms: 9000, press: press('A') },
     expect: { servos: leg({ ran: '+', stopped: true }, { ran: '+', stopped: true }) },
     msg: 'A를 누르면 두 다리가 + 속도로 돌다가, 일시중지 시간이 지나면 두 다리가 모두 멈춰야 해요(지금 끝에 {servos}). 순서: 회전 → 일시중지 → 정지.' };
+  const turn90Left = { name: 'turn90Left', label: 'B: 왼쪽으로 돌고 멈춤', run: { ms: 9000, press: press('B') },
+    expect: { servos: leg({ ran: '-', stopped: true }, { ran: '-', stopped: true }) },
+    msg: 'B도 반대 방향으로 회전 → 일시중지 → 두 서보 정지 차례예요. 먼저 A에서 찾은 시간을 똑같이 넣고 실제 비트런으로 확인해요.' };
   const fwdA = { name: 'fwdA', label: 'A: 앞으로 함수', run: { ms: 4000, press: press('A') },
     expect: { calls: { '*': { calledFrom: 'A' } }, servos: leg({ ran: '+', inFn: true }, { ran: '-', inFn: true }) },
     msg: 'A를 누르면 앞으로 함수를 불러야 해요(지금 부른 함수: {calls}). 서보 블록은 함수 안에 두고, 버튼에는 함수 부르기 블록만 넣어요. 앞으로는 왼쪽 +, 오른쪽 −.' };
@@ -43,8 +45,9 @@
     'turn-2': { checks: [
       { label: 'A: 두 서보 + 속도 뒤 일시중지', rule: { in: 'A', order: ['SERVO:run', 'WAIT'] } },
       { label: 'A: 일시중지 뒤 두 서보 정지', rule: { scenario: 'turn90' } },
+      { label: 'B: 반대 방향으로 돌고 기다린 뒤 두 서보 정지', rule: { all: [{ in: 'B', order: ['SERVO:run', 'WAIT'] }, { scenario: 'turn90Left' }] } },
       logoCheck,
-    ], scenarios: [turn90, spinB, logo('A')] },
+    ], scenarios: [turn90, turn90Left, logo('A')] },
     'turn-3': { checks: [
       { label: '함수 2개 만들기(첫 줄에 체크 표정)', rule: { defined: '>=2' } },
       { label: 'A를 누르면 앞으로 함수 부르기', rule: { scenario: 'fwdA' } },

@@ -271,6 +271,8 @@ window.LESSON = {
     /* ---------- 마무리 이야기(컷 8~9) ---------- */
     {
       type: 'story', id: 's-end', section: '4. 복도 끝 패드', title: '발판을 밟았어요!',
+      widget: 'bitrun-corridor-3d',
+      widgetOpts: { title: '다시 해 보기 · 발판까지 걷고 멈추기' },
       cuts: [
         { img: 'assets/img/story/e5-08.webp', alt: '레이저 복도. 비트런이 로봇 길을 똑바로 걸어 멀리 끝의 발판에 섰고, 발판 불이 초록으로 켜져요. 탐험대 네 명이 뒤에서 숨죽여 지켜봐요.',
           caption: '레이저가 꺼지고 복도 끝 문이 열렸어요.',

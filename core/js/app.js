@@ -1286,6 +1286,9 @@
     for (const r of sp.pass) {
       const v = recN(m, r.record), raw = recOf(m.id)[r.record];
       if (!recFilled(raw)) return (r.between || r.gt || r.lt || r.range ? '' : r.msg) || `측정 기록표의 "${recLabel(m, r.record)}" 칸을 먼저 채워요.`;
+      // Text observations require a non-empty value, not conversion to a number.
+      const field = sp.fields.find((f) => f.key === r.record);
+      if (field && field.type === 'text' && r.gt == null && r.lt == null && !r.between && !r.range) continue;
       if (!window.PBGrade.recordOk(r, Object.fromEntries(sp.fields.map((x) => [x.key, recOf(m.id)[x.key]])))) {
         if (r.msg) return r.msg;
         // ★range(수 상수 범위, 7~8 페르소나 2회차 #4): 기본 문장. 차시는 msg로 바꾼다(예 '자로 잰 값과 많이 달라요. 다시 재요.')

@@ -114,3 +114,7 @@
   }
   W.register('bitrun-build', build);
 })();
+
+window.Widgets.register('bitrun-parts-3d', (el, opts, ctx) => {
+  import('../../core/js/bitrun-interactive.js').then(m => { if (el.isConnected) m.mountParts(el, opts, ctx); }).catch(() => { el.textContent = '부품 체험을 불러오지 못했어요. 아래 설명을 살펴봐요.'; });
+});
